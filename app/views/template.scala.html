@@ -1,0 +1,12 @@
+@* template Template File *@
+@(title: String = "")(content: Html)
+<!DOCTYPE html>
+<html>
+<head>
+<title>@{if(title.isEmpty) title + " - "}Planet Metax</title>
+</head>
+<body>
+	<h1>Planet Metax</h1>
+	@content
+</body>
+</html>
