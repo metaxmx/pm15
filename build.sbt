@@ -24,6 +24,7 @@ libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.8.1",
   "com.typesafe.slick" %% "slick" % "3.0.2",
   "commons-io" % "commons-io" % "2.4",
+  "org.pegdown" % "pegdown" % "1.6.0",
   "org.webjars" % "bootstrap" % "3.3.4",
   "org.webjars" % "jquery" % "1.11.3",
   "org.webjars" % "html5shiv" % "3.7.2",
