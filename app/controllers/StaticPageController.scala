@@ -9,6 +9,8 @@ import util.exception.PageExceptions
 @Singleton
 class StaticPageController @Inject() (staticPageService: StaticPageService) extends AbstractController {
 
+  def showIndexPage = showStaticPage("index")
+
   def showStaticPage(url: String) = PageAction {
     staticPageService.getStaticPage(url).fold {
       throw PageExceptions.pageNotFoundException
