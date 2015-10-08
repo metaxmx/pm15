@@ -4,6 +4,7 @@ import slick.lifted.Tag
 import slick.driver.MySQLDriver.api._
 import com.github.tototoshi.slick.MySQLJodaSupport._
 import org.joda.time.DateTime
+import slick.lifted.TableQuery
 
 
 case class BlogEntry(
@@ -27,4 +28,8 @@ class BlogEntryTable(tag: Tag)
   def publishedDate = column[DateTime]("published_date")
 
   def * = (id, url, title, content, contentRendered, published, publishedDate) <> (BlogEntry.tupled, BlogEntry.unapply)
+}
+
+object BlogEntries extends TableQuery(new BlogEntryTable(_)) {
+
 }

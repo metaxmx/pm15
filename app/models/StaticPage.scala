@@ -19,3 +19,7 @@ class StaticPageTable(tag: Tag)
 
   def * = (id, url, title, content) <> (StaticPage.tupled, StaticPage.unapply)
 }
+
+object StaticPages extends TableQuery(new StaticPageTable(_)) {
+
+}

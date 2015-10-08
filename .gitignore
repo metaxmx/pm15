@@ -11,6 +11,7 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+logs/
 
 # Scala-IDE specific
 .scala_dependencies
@@ -19,5 +20,6 @@ project/plugins/project/
 .classpath
 .project
 .cache-main
+.cache-test
 .settings/
 project/project/

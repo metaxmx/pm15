@@ -12,6 +12,10 @@ developers := List(Developer("metax","Christian Simon","simon@illucit.com",url("
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+lazy val admin = inputKey[Unit]("Admin Tasks")
+
+fullRunInputTask(admin, Compile, "admin.AdminTasks")
+
 resolvers ++= Seq(
   "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   "scalaz-bintray"     at "http://dl.bintray.com/scalaz/releases"
@@ -19,21 +23,24 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   cache,
-  "com.google.inject"    %  "guice"             % "4.0"             withSources() withJavadoc,
-  "com.google.guava"     %  "guava"             % "18.0"            withSources() withJavadoc,
-  "javax.inject"         %  "javax.inject"      % "1"               withSources() withJavadoc,
-  "joda-time"            %  "joda-time"         % "2.8.1"           withSources() withJavadoc,
-  "org.joda"             %  "joda-convert"      % "1.7"             withSources() withJavadoc,
-  "com.typesafe.slick"   %% "slick"             % "3.0.2"           withSources() withJavadoc,
-  "com.github.tototoshi" %% "slick-joda-mapper" % "2.0.0"           withSources() withJavadoc,
-  "commons-io"           % "commons-io"         % "2.4"             withSources() withJavadoc,
-  "org.pegdown"          % "pegdown"            % "1.6.0"           withSources() withJavadoc,
-  "org.webjars"          % "bootstrap"          % "3.3.4"                                    ,
-  "org.webjars"          % "jquery"             % "1.11.3"                                   ,
-  "org.webjars"          % "html5shiv"          % "3.7.2"                                    ,
-  "org.webjars"          % "respond"            % "1.4.2"                                    ,
-  specs2                                                    % Test  withSources() withJavadoc,
-  "org.mockito"          % "mockito-core"       % "1.10.17" % Test  withSources() withJavadoc
+  "com.google.inject"    %  "guice"                 % "4.0"             withSources() withJavadoc,
+  "com.google.guava"     %  "guava"                 % "18.0"            withSources() withJavadoc,
+  "javax.inject"         %  "javax.inject"          % "1"               withSources() withJavadoc,
+  "joda-time"            %  "joda-time"             % "2.8.1"           withSources() withJavadoc,
+  "org.joda"             %  "joda-convert"          % "1.7"             withSources() withJavadoc,
+  "com.typesafe.slick"   %% "slick"                 % "3.0.3"           withSources() withJavadoc,
+  "com.github.tototoshi" %% "slick-joda-mapper"     % "2.0.0"           withSources() withJavadoc,
+  "com.typesafe.play"    %% "play-slick"            % "1.0.1"           withSources() withJavadoc,
+  "com.typesafe.play"    %% "play-slick-evolutions" % "1.0.1"           withSources() withJavadoc,
+  "mysql"                %  "mysql-connector-java"  % "latest.release"                           ,
+  "commons-io"           %  "commons-io"            % "2.4"             withSources() withJavadoc,
+  "org.pegdown"          %  "pegdown"               % "1.6.0"           withSources() withJavadoc,
+  "org.webjars"          %  "bootstrap"             % "3.3.4"                                    ,
+  "org.webjars"          %  "jquery"                % "1.11.3"                                   ,
+  "org.webjars"          %  "html5shiv"             % "3.7.2"                                    ,
+  "org.webjars"          %  "respond"               % "1.4.2"                                    ,
+  specs2                                                        % Test  withSources() withJavadoc,
+  "org.mockito"          %  "mockito-core"          % "1.10.17" % Test  withSources() withJavadoc
 )
 
 includeFilter in (Assets, LessKeys.less) := "*.less"
