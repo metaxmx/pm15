@@ -9,8 +9,8 @@ import models._
 import scala.concurrent.Future
 
 @Singleton
-class StaticPageDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
-    extends GenericDAO[StaticPage, StaticPageTable](dbConfigProvider, StaticPages) {
+class BlogEntryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
+    extends GenericDAO[BlogEntry, BlogEntryTable](dbConfigProvider, BlogEntries) {
 
   def getByUrl(url: String): Future[Option[StaticPage]] = db.run {
     StaticPages.filter(_.url === url).result.headOption

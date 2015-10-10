@@ -7,10 +7,10 @@ case class StaticPage(
   id: Int,
   url: String,
   title: String,
-  content: String)
+  content: String) extends KeyedEntity
 
 class StaticPageTable(tag: Tag)
-    extends Table[StaticPage](tag, "static") {
+    extends Table[StaticPage](tag, "static") with KeyedEntityTable {
 
   def id = column[Int]("id", O.PrimaryKey)
   def url = column[String]("url")
@@ -20,6 +20,4 @@ class StaticPageTable(tag: Tag)
   def * = (id, url, title, content) <> (StaticPage.tupled, StaticPage.unapply)
 }
 
-object StaticPages extends TableQuery(new StaticPageTable(_)) {
-
-}
+object StaticPages extends TableQuery(new StaticPageTable(_))

@@ -14,10 +14,10 @@ case class BlogEntry(
   content: String,
   contentRendered: String,
   published: Boolean,
-  publishedDate: DateTime)
+  publishedDate: DateTime) extends KeyedEntity
 
 class BlogEntryTable(tag: Tag)
-    extends Table[BlogEntry](tag, "blog") {
+    extends Table[BlogEntry](tag, "blog") with KeyedEntityTable {
 
   def id = column[Int]("id", O.PrimaryKey)
   def url = column[String]("url")
@@ -30,6 +30,4 @@ class BlogEntryTable(tag: Tag)
   def * = (id, url, title, content, contentRendered, published, publishedDate) <> (BlogEntry.tupled, BlogEntry.unapply)
 }
 
-object BlogEntries extends TableQuery(new BlogEntryTable(_)) {
-
-}
+object BlogEntries extends TableQuery(new BlogEntryTable(_))
