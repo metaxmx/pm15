@@ -35,6 +35,8 @@ libraryDependencies ++= Seq(
   "mysql"                %  "mysql-connector-java"  % "latest.release"                           ,
   "commons-io"           %  "commons-io"            % "2.4"             withSources() withJavadoc,
   "org.pegdown"          %  "pegdown"               % "1.6.0"           withSources() withJavadoc,
+  "org.python"           %  "jython-standalone"     % "2.5.3"           withSources() withJavadoc,
+  "org.pygments"         %  "pygments"              % "1.5"                                      ,
   "org.webjars"          %  "bootstrap"             % "3.3.4"                                    ,
   "org.webjars"          %  "jquery"                % "1.11.3"                                   ,
   "org.webjars"          %  "html5shiv"             % "3.7.2"                                    ,

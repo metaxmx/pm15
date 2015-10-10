@@ -11,4 +11,8 @@ class StaticPageService @Inject()(staticPageDAO: StaticPageDAO) {
 
   def getStaticPage(url: String): Future[Option[StaticPage]] = staticPageDAO.getByUrl(url)
 
+  def getStaticPageById(id: Int): Future[Option[StaticPage]] = staticPageDAO.getById(id)
+
+  def getAllStaticPages(): Future[Seq[StaticPage]] = staticPageDAO.getAll()
+
 }

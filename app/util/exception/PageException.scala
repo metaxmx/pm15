@@ -12,6 +12,7 @@ object PageExceptions {
 
   val pageNotFoundException = PageException { request => NotFound(views.html.error_notfound(request.path)) }
   val pageForbiddenException = PageException { request => Forbidden(views.html.error_forbidden()) }
+  val pageUnauthorizedException = PageException { request => Unauthorized(views.html.error_unauthorized()) }
   val pageBadRequestException = PageException { request => BadRequest(views.html.error_badrequest()) }
   val pageInternalException = PageException { request => InternalServerError(views.html.error_internalerror()) }
 

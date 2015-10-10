@@ -4,8 +4,20 @@
 # ~~~~
 
 # Static Page
-GET     /:page.html                           @controllers.StaticPageController.showStaticPage(page: String)
 GET     /                                     @controllers.StaticPageController.showIndexPage
+GET     /admin/                               @controllers.AdminController.adminPage
+GET     /:page.html                           @controllers.StaticPageController.showStaticPage(page: String)
+
+# Admin
+GET     /admin/staticpage/new.html            @controllers.AdminController.showNewStaticPage
+POST    /admin/staticpage/new.html            @controllers.AdminController.saveNewStaticPage
+GET     /admin/staticpage/:id.html            @controllers.AdminController.showEditStaticPage(id: Int)
+POST    /admin/staticpage/:id.html            @controllers.AdminController.saveEditStaticPage(id: Int)
+
+GET     /admin/blog/new.html                  @controllers.AdminController.showNewBlogEntry
+POST    /admin/blog/new.html                  @controllers.AdminController.saveNewBlogEntry
+GET     /admin/blog/:id.html                  @controllers.AdminController.showEditBlogEntry(id: Int)
+POST    /admin/blog/:id.html                  @controllers.AdminController.saveEditBlogEntry(id: Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                         @controllers.Assets.at(path="/public", file)

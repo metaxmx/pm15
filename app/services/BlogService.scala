@@ -8,6 +8,10 @@ import scala.concurrent.Future
 import dao.BlogEntryDAO
 
 @Singleton
-class BlogService @Inject()(blogEntryDAO: BlogEntryDAO) {
+class BlogService @Inject() (blogEntryDAO: BlogEntryDAO) {
+
+  def getBlogEntryById(id: Int) = blogEntryDAO.getById(id)
+
+  def getAllBlogEntries() = blogEntryDAO.getAll()
 
 }

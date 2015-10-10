@@ -1,0 +1,16 @@
+@* admin Template File *@
+@(staticPages: Seq[StaticPage], blogEntries: Seq[BlogEntry])
+@template("Admin") {
+	<h1>Planet Metax Administration</h1>
+	<h2>Static Pages</h2>
+	<p><a href="@routes.AdminController.showNewStaticPage">Static Page hinzufügen</a></p>
+	@for(staticPage <- staticPages) {
+		<p><a href="@routes.AdminController.showEditStaticPage(staticPage.id)">[@staticPage.id] @{staticPage.url}.html - @staticPage.title</a></p>
+	}
+	<h2>Blog Einträge</h2>
+	<p><a href="@routes.AdminController.showNewBlogEntry">Blog Eintrag hinzufügen</a></p>
+	@for(blogEntry <- blogEntries) {
+		<p><a href="@routes.AdminController.showEditBlogEntry(blogEntry.id)">[@blogEntry.id] @{blogEntry.url}.html - @blogEntry.title</a></p>
+	}
+	
+}
