@@ -11,4 +11,13 @@ import services.BlogService
 @Singleton
 class BlogController @Inject() (blogService: BlogService) extends AbstractController {
   
+//  def blogOverview = blogOverviewPage(1)
+//  
+//  def blogOverviewPage(page: Int) = PageAction.async {
+//    blogService.getAllBlogEntries().map {
+//      entries =>
+//        val visibleEntries = entries.filter(_.published)
+//    }
+//  }
+  
 }

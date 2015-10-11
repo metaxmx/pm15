@@ -5,8 +5,13 @@
 <head>
 	<meta charset="UTF-8">
 	<title>@{if(!title.isEmpty) title + " - "}Planet Metax</title>
+	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("/public", "lib/bootstrap/css/bootstrap.min.css")">
 	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("/public", "stylesheets/pm15.css")">
 	<link rel="icon" type="image/x-icon" href="@routes.Assets.at("/public/images", "favicon.ico")" />
+	<!--[if IE]>
+		<script type="text/javascript" src="@routes.Assets.at("/public", "lib/html5shiv/html5shiv.min.js")"></script>
+		<script type="text/javascript" src="@routes.Assets.at("/public", "lib/respond/dest/respond.min.js")"></script>
+	<![endif]-->
 </head>
 <body>
 <header>

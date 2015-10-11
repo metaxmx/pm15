@@ -1,7 +1,7 @@
 package models
 
-import slick.lifted.Tag
 import slick.driver.MySQLDriver.api._
+import slick.lifted.{ Tag => SlickTag }
 
 case class StaticPage(
   id: Int,
@@ -9,7 +9,7 @@ case class StaticPage(
   title: String,
   content: String) extends KeyedEntity
 
-class StaticPageTable(tag: Tag)
+class StaticPageTable(tag: SlickTag)
     extends Table[StaticPage](tag, "static") with KeyedEntityTable {
 
   def id = column[Int]("id", O.PrimaryKey)

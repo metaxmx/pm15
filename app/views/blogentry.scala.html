@@ -1,0 +1,6 @@
+@* Blog Entry Template File *@
+@import models.BlogEntry
+@(blogEntry: BlogEntry)
+@template(blogEntry.title) {
+	@Html(blogEntry.contentRendered)
+}
