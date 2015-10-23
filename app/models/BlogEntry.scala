@@ -16,7 +16,7 @@ case class BlogEntry(
   contentRendered: String,
   contentFormat: String,
   published: Boolean,
-  publishedDate: DateTime,
+  publishedDate: Option[DateTime],
   views: Int) extends KeyedEntity
 
 class BlogEntryTable(tag: SlickTag)
@@ -30,7 +30,7 @@ class BlogEntryTable(tag: SlickTag)
   def contentRendered = column[String]("content_rendered")
   def contentFormat = column[String]("content_format")
   def published = column[Boolean]("published")
-  def publishedDate = column[DateTime]("published_date")
+  def publishedDate = column[Option[DateTime]]("published_date")
   def views = column[Int]("views")
 
   def blogCategory = foreignKey("fk_blog_category", categoryId, Categories)(_.id)

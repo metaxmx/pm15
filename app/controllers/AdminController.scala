@@ -22,8 +22,8 @@ class AdminController @Inject() (staticPageService: StaticPageService, blogServi
 
   def adminPage = AdminAction.async {
     for {
-      staticPages <- staticPageService.getAllStaticPages()
-      blogEntries <- blogService.getAllBlogEntries()
+      staticPages <- staticPageService.getAll()
+      blogEntries <- blogService.getAll()
     } yield Ok(views.html.admin(staticPages, blogEntries))
   }
 
@@ -39,28 +39,20 @@ class AdminController @Inject() (staticPageService: StaticPageService, blogServi
 
   def showEditStaticPage(id: Int) = AdminAction.async {
     implicit request =>
-      staticPageService.getStaticPageById(id) map {
-        _.fold {
-          throw PageExceptions.pageNotFoundException
-        } {
-          staticPage =>
-            val formData = StaticPageData(staticPage.title, staticPage.url, staticPage.content)
-            val form = staticPageDataForm.fill(formData)
-            Ok(views.html.adminstatic(staticPage, form))
-        }
+      staticPageService.getByIdRequired(id) map {
+        staticPage =>
+          val formData = StaticPageData(staticPage.title, staticPage.url, staticPage.content)
+          val form = staticPageDataForm.fill(formData)
+          Ok(views.html.adminstatic(staticPage, form))
       }
   }
 
   def saveEditStaticPage(id: Int) = AdminAction.async {
     implicit request =>
       val form = staticPageDataForm.bindFromRequest
-      staticPageService.getStaticPageById(id) map {
-        _.fold {
-          throw PageExceptions.pageNotFoundException
-        } {
-          staticPage =>
-            Ok(views.html.adminstatic(staticPage, form))
-        }
+      staticPageService.getByIdRequired(id) map {
+        staticPage =>
+          Ok(views.html.adminstatic(staticPage, form))
       }
   }
 

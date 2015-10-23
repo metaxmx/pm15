@@ -10,14 +10,32 @@ import services.BlogService
 
 @Singleton
 class BlogController @Inject() (blogService: BlogService) extends AbstractController {
+
+  def blogOverview = blogOverviewPage(1)
+
+  def blogOverviewPage(page: Int) = ????
+
+  def blogByCategory(url: String) = blogByCategoryPage(url, 1)
+
+  def blogByCategoryPage(url: String, page: Int) = ????
+
+  def blogByTag(url: String) = blogByTagPage(url, 1)
+
+  def blogByTagPage(url: String, page: Int) = ????
+
+  def blogByYear(year: Int) = blogByYearPage(year, 1)
+
+  def blogByYearPage(year: Int, page: Int) = ????
   
-//  def blogOverview = blogOverviewPage(1)
-//  
-//  def blogOverviewPage(page: Int) = PageAction.async {
-//    blogService.getAllBlogEntries().map {
-//      entries =>
-//        val visibleEntries = entries.filter(_.published)
-//    }
-//  }
-  
+  def blogByMonth(year: Int, month: Int) = blogByMonthPage(year, month, 1)
+
+  def blogByMonthPage(year: Int, month: Int, page: Int) = ????
+
+  def showBlogEntry(id: Int, url: String) = PageAction.async {
+    println("Blog ID " + id)
+    for {
+      blogEntry <- blogService.getByIdWithMetaRequired(id)
+    } yield Ok(views.html.blogentry(blogEntry))
+  }
+
 }

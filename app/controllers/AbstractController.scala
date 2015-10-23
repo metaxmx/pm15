@@ -69,4 +69,9 @@ trait AbstractController extends Controller {
   }
 
   object AdminAction extends AdminActionBuilder
+
+  def ???? = Action {
+    NotImplemented(views.html.NOT_IMPLEMENTED())
+  }
+
 }

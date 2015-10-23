@@ -10,16 +10,15 @@ import play.api.libs.concurrent.Execution.Implicits._
 @Singleton
 class StaticPageController @Inject() (staticPageService: StaticPageService) extends AbstractController {
 
-  def showIndexPage = showStaticPage("index")
+  val indexUrl = "index"
+
+  def showIndexPage = showStaticPage(indexUrl)
 
   def showStaticPage(url: String) = PageAction.async {
-    staticPageService.getStaticPage(url) map {
-      _.fold {
-        throw PageExceptions.pageNotFoundException
-      } {
-        staticPage =>
-          Ok(views.html.staticpage(staticPage))
-      }
+    println("Static Page URL: " + url)
+    staticPageService.getByUrlRequired(url) map {
+      staticPage =>
+        Ok(views.html.staticpage(staticPage))
     }
   }
 

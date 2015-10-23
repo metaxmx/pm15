@@ -3,10 +3,23 @@
 #
 # ~~~~
 
+# Blog
+GET    /blog/                                 @controllers.BlogController.blogOverview
+GET    /blog/seite:page/                      @controllers.BlogController.blogOverviewPage(page: Int)
+GET    /blog/kategorie/:url/                  @controllers.BlogController.blogByCategory(url)
+GET    /blog/kategorie/:url/seite:page/       @controllers.BlogController.blogByCategoryPage(url, page: Int)
+GET    /blog/schlagwort/:url/                 @controllers.BlogController.blogByTag(url)
+GET    /blog/schlagwort/:url/seite:page/      @controllers.BlogController.blogByTagPage(url, page: Int)
+GET    /blog/archiv/:year/                    @controllers.BlogController.blogByYear(year: Int)
+GET    /blog/archiv/:year/seite:page/         @controllers.BlogController.blogByYearPage(year: Int, page: Int)
+GET    /blog/archiv/:year/:month/             @controllers.BlogController.blogByMonth(year: Int, month: Int)
+GET    /blog/archiv/:year/:month/seite:page/  @controllers.BlogController.blogByMonthPage(year: Int, month: Int, page: Int)
+GET    /blog/:id/:url/                        @controllers.BlogController.showBlogEntry(id: Int, url)
+
 # Static Page
 GET     /                                     @controllers.StaticPageController.showIndexPage
 GET     /admin/                               @controllers.AdminController.adminPage
-GET     /:page.html                           @controllers.StaticPageController.showStaticPage(page: String)
+GET     /:page/                               @controllers.StaticPageController.showStaticPage(page: String)
 
 # Admin
 GET     /admin/staticpage/new.html            @controllers.AdminController.showNewStaticPage
