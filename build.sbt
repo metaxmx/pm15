@@ -34,6 +34,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play"    %% "play-slick-evolutions" % "1.0.1"           withSources() withJavadoc,
   "mysql"                %  "mysql-connector-java"  % "latest.release"                           ,
   "commons-io"           %  "commons-io"            % "2.4"             withSources() withJavadoc,
+  "org.jsoup"            %  "jsoup"                 % "1.8.3"           withSources() withJavadoc,
   "org.pegdown"          %  "pegdown"               % "1.6.0"           withSources() withJavadoc,
   "org.python"           %  "jython-standalone"     % "2.5.3"           withSources() withJavadoc,
   "org.pygments"         %  "pygments"              % "1.5"                                      ,

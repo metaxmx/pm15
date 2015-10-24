@@ -18,7 +18,14 @@ object ContentRenderers {
 
   val contentRenderersByFormat = contentRenderers.map { r => r.renderFormat -> r }.toMap
 
-  def render(source: String, format: String): Option[Try[ContentWithAbstract]] =
-    contentRenderersByFormat get format map { contentRenderer => Try(contentRenderer render source) }
+  def render(source: String, format: String): Option[Try[ContentWithAbstract]] = {
+    contentRenderersByFormat get format map {
+      contentRenderer => Try(contentRenderer render source)
+    } map {
+      _ flatMap {
+        PostRenderers.postRender(_, format)
+      }
+    }
+  }
 
 }
