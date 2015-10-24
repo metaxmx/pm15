@@ -1,0 +1,29 @@
+@* blogoverview Template File *@
+@import viewmodels.BlogEntryList
+@(blogEntryList: BlogEntryList)
+
+@for(blogEntry <- blogEntryList.blogEntries) {
+	@include_blogentry_short(blogEntry)
+}
+
+@navItem(page: Option[Int], title: String) = {
+	<li>
+		@if(page.isDefined) {
+			<a href="@blogEntryList.pagination.pageUrl(page.get)" class="pageNavigationItem">@title</a>
+		} else {
+			<span class="pageNavigationItemDisabled">@title</span>
+		}
+	</li>
+}
+
+@if(blogEntryList.pagination.visible) {
+	<div class="pageNavigation">
+		<ul>
+			@navItem(blogEntryList.pagination.first, "|<<")
+			@navItem(blogEntryList.pagination.prev, "<")
+			@navItem(None, "Seite " + blogEntryList.pagination.current + " / " + blogEntryList.pagination.max)
+			@navItem(blogEntryList.pagination.next, ">")
+			@navItem(blogEntryList.pagination.last, ">>|")
+		</ul>
+	</div>
+}

@@ -19,16 +19,16 @@
 	<div id="slogan">Aus dem Leben eines Entwicklers</div>
 	<ul id="mainmenu">
 		<li><a href="@routes.StaticPageController.showIndexPage()">Startseite</a></li>
-		<li><a href="/blog/">Blog</a></li>
+		<li><a href="@routes.BlogController.blogOverview()">Blog</a></li>
 		<li><a href="@routes.StaticPageController.showStaticPage("artikel")">Artikel</a></li>
-		<li><a href="@routes.StaticPageController.showStaticPage("profile")">Profil</a></li>
+		<li><a href="@routes.StaticPageController.showStaticPage("profil")">Profil</a></li>
 		<li><a href="@routes.StaticPageController.showStaticPage("kontakt")">Kontakt</a></li>
 	</ul>
 </header>
 <div id="container">
-	<div id="content">
+	<main id="content">
 		@content
-	</div>
+	</main>
 </div>
 <footer>
 	<div id="footerlinks">

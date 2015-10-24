@@ -1,0 +1,7 @@
+@* Blog By Year Template File *@
+@import viewmodels.BlogEntryList
+@(blogEntryList: BlogEntryList)
+@template("Blog") {
+	<h1>Blog</h1>
+	@include_bloglist(blogEntryList)
+}

@@ -1,0 +1,42 @@
+@* Long Blog Entry Include File *@
+@import viewmodels.BlogEntryWithMeta
+@(entry: BlogEntryWithMeta)
+<section class="blogentry">
+	<h2><a href="@routes.BlogController.showBlogEntry(entry.blogEntry.id, entry.blogEntry.url)">@entry.blogEntry.title</a></h2>
+	<div class="blogMetaTop">
+		@if(entry.blogEntry.published && entry.blogEntry.publishedDate.isDefined) {
+			Veröffentlicht am @{entry.blogEntry.publishedDate.get.getDayOfMonth}.
+			<a href="@routes.BlogController.blogByMonth(entry.blogEntry.publishedDate.get.getYear, entry.blogEntry.publishedDate.get.getMonthOfYear)"
+			>@entry.blogEntry.publishedDate.get.monthOfYear().getAsText</a>
+			<a href="@routes.BlogController.blogByYear(entry.blogEntry.publishedDate.get.getYear)"
+			>@entry.blogEntry.publishedDate.get.getYear</a>
+		} else {
+			Unveröffentlicht
+		}
+	</div>
+	<div class="blogbody" style="padding: 2em; background-color: #f0f0f0;">
+		@Html(entry.blogEntry.contentRendered)
+	</div>
+	<div class="blogMetaBottom">
+		<div>
+			Kategorie:
+			<a href="@routes.BlogController.blogByCategory(entry.category.url)">
+				@entry.category.title
+			</a>
+		</div>
+		@if(!entry.tags.isEmpty) {
+			<div>
+				Schlagworte:
+				<ul class="tags">
+				@for(tag <- entry.tags) {
+					<li>
+					<a href="@routes.BlogController.blogByTag(tag.url)">
+						@tag.title
+					</a>
+					</li>
+				}
+				</ul>
+			</div>
+		}
+	</div>
+</section>

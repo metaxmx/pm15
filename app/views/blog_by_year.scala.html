@@ -1,0 +1,8 @@
+@* Blog By Year Template File *@
+@import viewmodels.BlogEntryList
+@import org.joda.time.YearMonth
+@(date: YearMonth)(blogEntryList: BlogEntryList)
+@template("Blog Archiv - Jahr " + date.getYear) {
+	<h1>Blog Archiv - Jahr @date.getYear</h1>
+	@include_bloglist(blogEntryList)
+}

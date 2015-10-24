@@ -1,0 +1,7 @@
+@* Blog By Category Template File *@
+@import viewmodels.BlogEntryList
+@(cat: Category)(blogEntryList: BlogEntryList)
+@template("Blog - Kategorie " + cat.title) {
+	<h1>Blog - Kategorie @cat.title</h1>
+	@include_bloglist(blogEntryList)
+}
