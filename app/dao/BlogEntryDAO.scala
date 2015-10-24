@@ -39,4 +39,24 @@ class BlogEntryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
     }
   }
 
+  def getListWithMeta(): Future[Seq[BlogEntryWithMeta]] = db.run {
+    val queryBlog = for {
+      ((blog, cat), blogTagOpt) <- (BlogEntries join Categories on (_.categoryId === _.id)) joinLeft
+        (BlogEntryHasTags join Tags on ((a, b) => a.tagId === b.id)) on (_._1.id === _._1.blogId)
+    } yield (blog, cat, blogTagOpt)
+    val resultBlog = queryBlog.result
+    resultBlog map {
+      _.map {
+        case (blog, cat, None)                    => (blog, cat, None, None)
+        case (blog, cat, Some((blogHasTag, tag))) => (blog, cat, Some(blogHasTag), Some(tag))
+      }.groupBy(_._1.id).values.map {
+        seq =>
+          val blog = seq.head._1
+          val cat = seq.head._2
+          val tags = seq filter (_._4.isDefined) map (_._4.get)
+          BlogEntryWithMeta(blog, cat, tags)
+      }.toSeq.sorted
+    }
+  }
+
 }

@@ -21,4 +21,6 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO) extends GenericService 
 
   def getByIdWithMetaRequired(id: Int) = require(getByIdWithMeta(id))
 
+  def getListWithMeta() = blogEntryDAO.getListWithMeta()
+
 }
