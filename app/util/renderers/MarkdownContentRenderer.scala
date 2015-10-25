@@ -13,8 +13,21 @@ object MarkdownContentRenderer extends ContentRenderer {
 
   override def render(source: String) = {
     val processor = new PegDownProcessor(EXTENSIONS, MAX_PARSING_TIME)
-    val content = processor markdownToHtml source
-    ContentWithAbstract(content, content)
+    val (abstrSource, contentSource) = splitAbstract(source)
+    val abstr = processor markdownToHtml abstrSource
+    val content = processor markdownToHtml contentSource
+    ContentWithAbstract(abstr, content)
+  }
+
+  def splitAbstract(source: String): (String, String) =
+    split2(source, "--abstract--") orElse
+      split2(source, "---abstract---") orElse
+      split2(source, "~~~") getOrElse
+      (source, source)
+
+  def split2(source: String, exp: String): Option[(String, String)] = {
+    val split = source split exp
+    if (split.length == 2) Some((split(0), split(0) + split(1))) else None
   }
 
 }

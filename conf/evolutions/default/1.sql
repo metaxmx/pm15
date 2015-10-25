@@ -7,6 +7,8 @@ CREATE TABLE `static` (
     `url` VARCHAR(255) COLLATE utf8_bin NOT NULL COMMENT "Page URL",
     `title` VARCHAR(1024) COLLATE utf8_bin NOT NULL COMMENT "Page Title",
     `content` LONGTEXT NOT NULL COMMENT "Page Content",
+    `content_rendered` LONGTEXT NOT NULL COMMENT "Page Content (rendered as HTML)",
+    `content_format` VARCHAR(255) NOT NULL COMMENT "Page Render Format",
     PRIMARY KEY (`id`),
     UNIQUE KEY `key_static_unique_url` (`url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
@@ -37,6 +39,7 @@ CREATE TABLE `blog` (
     `title` VARCHAR(1024) COLLATE utf8_bin NOT NULL COMMENT "Blog entry Title",
     `content` LONGTEXT NOT NULL COMMENT "Entry Content (raw)",
     `content_rendered` LONGTEXT NOT NULL COMMENT "Entry Content (rendered as HTML)",
+    `abstract_rendered` LONGTEXT NOT NULL COMMENT "Entry Abstract (rendered as HTML)",
     `content_format` VARCHAR(255) NOT NULL COMMENT "Entry Render Format",
     `published` BIT(1) NOT NULL COMMENT "Blog Entry published?",
     `published_date` DATETIME DEFAULT NULL COMMENT "Blog Entry Publishing Date",

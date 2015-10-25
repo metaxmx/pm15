@@ -14,6 +14,7 @@ case class BlogEntry(
     title: String,
     content: String,
     contentRendered: String,
+    abstractRendered: String,
     contentFormat: String,
     published: Boolean,
     publishedDate: Option[DateTime],
@@ -41,6 +42,7 @@ class BlogEntryTable(tag: SlickTag)
   def title = column[String]("title")
   def content = column[String]("content")
   def contentRendered = column[String]("content_rendered")
+  def abstractRendered = column[String]("abstract_rendered")
   def contentFormat = column[String]("content_format")
   def published = column[Boolean]("published")
   def publishedDate = column[Option[DateTime]]("published_date")
@@ -48,7 +50,7 @@ class BlogEntryTable(tag: SlickTag)
 
   def blogCategory = foreignKey("fk_blog_category", categoryId, Categories)(_.id)
 
-  def * = (id, categoryId, url, title, content, contentRendered, contentFormat, published, publishedDate, views) <>
+  def * = (id, categoryId, url, title, content, contentRendered, abstractRendered, contentFormat, published, publishedDate, views) <>
     (BlogEntry.tupled, BlogEntry.unapply)
 }
 

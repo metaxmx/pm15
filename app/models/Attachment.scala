@@ -6,7 +6,6 @@ import slick.lifted.{ Tag => SlickTag }
 
 object AttachmentTypes {
 
-  // An algebraic data type for booleans
   sealed trait AttachmentType
   case object HiddenAttachment extends AttachmentType {
     val identifier = "hidden"
@@ -36,7 +35,7 @@ case class Attachment(
   id: Int,
   blogId: Int,
   url: String,
-  filename: String,
+  filename: Option[String],
   attachmentType: AttachmentType,
   mime: String,
   downloads: Int) extends KeyedEntity
@@ -47,7 +46,7 @@ class AttachmentTable(tag: SlickTag)
   def id = column[Int]("id", O.PrimaryKey)
   def blogId = column[Int]("blog_id")
   def url = column[String]("url")
-  def filename = column[String]("filename")
+  def filename = column[Option[String]]("filename")
   def attachmentType = column[AttachmentType]("attachment_type")
   def mime = column[String]("mime")
   def downloads = column[Int]("downloads")

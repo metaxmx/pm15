@@ -34,18 +34,24 @@ object AdminTasks extends Logging {
   def main(args: Array[String]) = {
     Logger.init(new File("."), Mode.Dev)
     args.toList match {
-      case "schemify" :: Nil             => schemify
-      case "render" :: Nil               => render(None)
-      case "render" :: number(id) :: Nil => render(Some(id.toInt))
-      case _                             => help
+      case "schemify" :: Nil                         => schemify
+      case "render" :: Nil                           => render(true, true, None)
+      case "render" :: "blog" :: Nil                 => render(true, false, None)
+      case "render" :: "static" :: Nil               => render(false, true, None)
+      case "render" :: "blog" :: number(id) :: Nil   => render(true, false, Some(id.toInt))
+      case "render" :: "static" :: number(id) :: Nil => render(false, true, Some(id.toInt))
+      case _                                         => help
     }
   }
 
   def help = {
     println("""|Admin Tasks:
-               | - schemify    : Create Database Schema (drop existing data!)
-               | - render      : Render all blog entries
-               | - render <id> : Render only blog entry <id>
+               | - schemify           : Create Database Schema (drop existing data!)
+               | - render             : Render all blog entries and static pages
+               | - render blog        : Render all blog entries
+               | - render static      : Render all static pages
+               | - render blog <id>   : Render only blog entry <id>
+               | - render static <id> : Render only static page <id>
                |""".stripMargin)
   }
 
@@ -66,31 +72,33 @@ object AdminTasks extends Logging {
     }
   }
 
-  def render(id: Option[Int]) = {
-    log.info("Rerender " + id.map("Entry " + _).getOrElse("All Entries") + " ...")
+  def render(renderBlog: Boolean, renderStatic: Boolean, id: Option[Int]) = {
     withDb {
       db =>
-        val blogsQuery = for {
-          blog <- BlogEntries
-        } yield blog
-        val blogsFuture = db.run(blogsQuery.result.map { _ filter { blog => id.forall { _ == blog.id } } })
-        val blogs = Await.result(blogsFuture, Duration.Inf)
-        blogs.foreach {
-          blog =>
-            log.info(s"Render: $blog")
-            ContentRenderers.render(blog.content, blog.contentFormat) match {
-              case None => log.warn(s"Content Format ${blog.contentFormat} in blog entry ${blog.id} not defined.")
-              case Some(Failure(e)) => log.error(s"Error during rendering of blog entry ${blog.id}", e)
-              case Some(Success(ContentWithAbstract(abstr, content))) => {
-                log.info(s"Successfully rendered content of blog entry ${blog.id}")
-                log.info(content)
-                val updadeQuery = for { b <- BlogEntries if b.id === blog.id} yield b.contentRendered
-                val updateAction = updadeQuery.update(content)
-                db.run(updateAction)
+        if (renderBlog) {
+          log.info("Rerender " + id.map("Blog Entry " + _).getOrElse("All Blog Entries") + " ...")
+          val blogsQuery = for {
+            blog <- BlogEntries
+          } yield blog
+          val blogsFuture = db.run(blogsQuery.result.map { _ filter { blog => id.forall { _ == blog.id } } })
+          val blogs = Await.result(blogsFuture, Duration.Inf)
+          blogs.foreach {
+            blog =>
+              log.info(s"Render Blog ${blog.id}")
+              ContentRenderers.render(blog.content, blog.contentFormat) match {
+                case None             => log.warn(s"Content Format ${blog.contentFormat} in blog entry ${blog.id} not defined.")
+                case Some(Failure(e)) => log.error(s"Error during rendering of blog entry ${blog.id}", e)
+                case Some(Success(ContentWithAbstract(abstr, content))) => {
+                  val updadeQuery = for { b <- BlogEntries if b.id === blog.id } yield (b.abstractRendered, b.contentRendered)
+                  val updateAction = updadeQuery.update(abstr, content)
+                  Await.result(db.run(updateAction), Duration.Inf)
+                }
               }
-            }
+          }
         }
-
+        if (renderStatic) {
+          log.info("Rerender " + id.map("Static Page " + _).getOrElse("All Static Pages") + " ...")
+        }
     }
   }
 

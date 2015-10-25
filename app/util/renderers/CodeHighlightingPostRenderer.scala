@@ -49,13 +49,7 @@ object CodeHighlightingPostRenderer extends PostRenderer with Logging {
                         |except:
                         |    result = code""".stripMargin
 
-    val result = interpreter.get("result", classOf[String])
-
-    println("---------------------------------")
-    println(result)
-    println("---------------------------------")
-    result
-
+    interpreter.get("result", classOf[String])
   }
 
 }

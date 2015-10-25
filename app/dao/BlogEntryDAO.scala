@@ -32,10 +32,7 @@ class BlogEntryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
       maybeBlogCat <- resultBlog
       tags <- resultTags
     } yield maybeBlogCat map {
-      case (blog, cat) =>
-        val result = BlogEntryWithMeta(blog, cat, tags)
-        println(result)
-        result
+      case (blog, cat) => BlogEntryWithMeta(blog, cat, tags)
     }
   }
 

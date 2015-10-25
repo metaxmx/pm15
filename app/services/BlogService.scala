@@ -8,7 +8,10 @@ import dao._
 import viewmodels.BlogEntryData
 
 @Singleton
-class BlogService @Inject() (blogEntryDAO: BlogEntryDAO, tagDAO: TagDAO, catDAO: CategoryDAO) extends GenericService {
+class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
+                             tagDAO: TagDAO,
+                             catDAO: CategoryDAO,
+                             attachmentDAO: AttachmentDAO) extends GenericService {
 
   def getById(id: Int) = blogEntryDAO.getById(id)
 
@@ -25,5 +28,9 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO, tagDAO: TagDAO, catDAO:
   def getTagRequired(url: String) = require(tagDAO.getByUrl(url))
 
   def getCategoryRequired(url: String) = require(catDAO.getByUrl(url))
+
+  def getAttachment(blogId: Int, url: String) = attachmentDAO.getByBlogIdAndUrl(blogId, url)
+
+  def getAttachmentRequired(blogId: Int, url: String) = require(getAttachment(blogId, url))
 
 }

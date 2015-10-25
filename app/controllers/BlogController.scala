@@ -1,21 +1,30 @@
 package controllers
 
 import javax.inject.{ Inject, Singleton }
-
 import org.joda.time.YearMonth
-
 import play.api.http.Writeable
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Call
-
 import services.BlogService
 import util.exception.PageExceptions
 import viewmodels._
+import play.api.Play.current
+import com.typesafe.config.ConfigException
+import models.Attachment
+import scala.io.Source
+import java.io.File
+import org.apache.commons.io.FileUtils
+import java.io.IOException
+import util.Logging
 
 @Singleton
-class BlogController @Inject() (blogService: BlogService) extends AbstractController {
+class BlogController @Inject() (blogService: BlogService) extends AbstractController with Logging {
 
   val BLOG_ENTRIES_PER_PAGE = 1
+
+  lazy val mediaBasePath = current.configuration.getString("media.path") getOrElse { throw new ConfigException.Missing("media.path") }
+
+  lazy val mediaBaseFile = new File(mediaBasePath)
 
   def blogOverview = blogOverviewPage(1)
 
@@ -61,7 +70,6 @@ class BlogController @Inject() (blogService: BlogService) extends AbstractContro
   }
 
   def showBlogEntry(id: Int, url: String) = PageAction.async {
-    println("Blog ID " + id)
     for {
       blogEntry <- blogService.getByIdWithMetaRequired(id)
     } yield Ok(views.html.blogentry(blogEntry))
@@ -107,6 +115,29 @@ class BlogController @Inject() (blogService: BlogService) extends AbstractContro
     val (first, prev) = if (current > 1) (Some(1), Some(current - 1)) else (None, None)
     val (next, last) = if (current < max) (Some(current + 1), Some(max)) else (None, None)
     Pagination(first, prev, current, max, next, last, pager)
+  }
+
+  def attachment(blogid: Int, blogurl: String, attachmenturl: String) = PageAction.async {
+    for {
+      attachment <- blogService.getAttachmentRequired(blogid, attachmenturl)
+    } yield Ok(readAttachment(attachment)).as(attachment.mime)
+  }
+
+  def readAttachment(attachment: Attachment): Array[Byte] = {
+    val blogEntryDir = new File(mediaBaseFile, s"blog/${attachment.blogId}")
+    val file = new File(blogEntryDir, attachment.filename.getOrElse(attachment.url))
+    if (!file.exists) {
+      log.warn(s"Attachment file ${file.getPath} not existing")
+      throw PageExceptions.pageNotFoundException
+    }
+    try {
+      FileUtils.readFileToByteArray(file)
+    } catch {
+      case e: IOException => {
+        log.error(s"Error reading attachment file $file", e)
+        throw PageExceptions.pageInternalException
+      }
+    }
   }
 
 }

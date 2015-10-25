@@ -15,7 +15,6 @@ class StaticPageController @Inject() (staticPageService: StaticPageService) exte
   def showIndexPage = showStaticPage(indexUrl)
 
   def showStaticPage(url: String) = PageAction.async {
-    println("Static Page URL: " + url)
     staticPageService.getByUrlRequired(url) map {
       staticPage =>
         Ok(views.html.staticpage(staticPage))
