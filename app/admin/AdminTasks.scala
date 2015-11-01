@@ -23,11 +23,23 @@ import util.renderers.ContentRenderers
 import scala.util.Failure
 import scala.util.Success
 import util.renderers.ContentWithAbstract
+import scala.collection.convert.decorateAsScala._
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
+import java.io.FileNotFoundException
+import org.apache.commons.io.FileUtils
+import play.api.libs.json.Json
+import play.api.libs.json.DefaultFormat
+import org.joda.time.DateTime
+import java.util.Formatter.DateTime
 
 /**
  * Admin tasks.
  */
 object AdminTasks extends Logging {
+
+  val importFolderBlog = "import/blog"
 
   val number = "([0-9]+)".r
 
@@ -40,6 +52,8 @@ object AdminTasks extends Logging {
       case "render" :: "static" :: Nil               => render(false, true, None)
       case "render" :: "blog" :: number(id) :: Nil   => render(true, false, Some(id.toInt))
       case "render" :: "static" :: number(id) :: Nil => render(false, true, Some(id.toInt))
+      case "import" :: Nil                           => importBlog(None)
+      case "import" :: number(id) :: Nil             => importBlog(Some(id.toInt))
       case _                                         => help
     }
   }
@@ -52,6 +66,8 @@ object AdminTasks extends Logging {
                | - render static      : Render all static pages
                | - render blog <id>   : Render only blog entry <id>
                | - render static <id> : Render only static page <id>
+               | - import             : Import all Blog Entries
+               | - import <id>        : Import Blog Entry with id <id>
                |""".stripMargin)
   }
 
@@ -100,6 +116,50 @@ object AdminTasks extends Logging {
           log.info("Rerender " + id.map("Static Page " + _).getOrElse("All Static Pages") + " ...")
         }
     }
+  }
+
+  case class BlogMeta(title: String, category: String, tags: Seq[String], published: Boolean, publishDate: String) {
+
+    def getPublishDateAsDatetime: DateTime =
+      DateTime.parse(publishDate)
+
+  }
+
+  implicit val blogMetaFormat = Json.format[BlogMeta]
+
+  def importBlog(id: Option[Int]): Unit = id match {
+    case None => {
+      val importBlogFolder = new File(importFolderBlog)
+      importBlogFolder.listFiles().filter(_.getName.matches("[0-9]+")).foreach { f => importBlog(Some(f.getName.toInt)) }
+    }
+    case Some(id) => {
+      val importData = for {
+        blogFolder <- checkFile(new File(s"$importFolderBlog/$id"))
+        contentFile <- checkFile(new File(blogFolder, "content.md"))
+        metaFile <- checkFile(new File(blogFolder, "meta.json"))
+      } yield (blogFolder, contentFile, metaFile)
+      importData match {
+        case Failure(e) => log.error(s"Error finding file ${e.getMessage}")
+        case Success((blogFolder, contentFile, metaFile)) => {
+          val metaData = FileUtils.readFileToString(metaFile, "UTF-8")
+          val contentData = FileUtils.readFileToString(contentFile, "UTF-8")
+          val metaJson = Json.parse(metaData)
+          metaJson.asOpt[BlogMeta] match {
+            case None => log.error(s"Error parsing $metaFile")
+            case Some(meta) => {
+              log.info(s"Import blog entry ${meta.title} (id: ${id})")
+            }
+          }
+        }
+      }
+    }
+  }
+
+  def checkFile(file: File): Try[File] = {
+    if (file.exists())
+      Success(file)
+    else
+      Failure(new FileNotFoundException(s"File $file not found"))
   }
 
   lazy val config = ConfigFactory.defaultApplication()
