@@ -1,38 +1,24 @@
 package admin
 
-import slick.driver.MySQLDriver.api._
-import scala.concurrent.ExecutionContext.Implicits.global
-import models._
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.Application
-import play.api.Play
-import slick.driver.JdbcProfile
+import java.io.{ File, FileNotFoundException }
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import play.api.db.slick.NamedDatabaseConfigProvider
-import slick.driver.MySQLDriver
-import play.api.db.slick.DefaultSlickApi
-import slick.backend.DatabaseConfig
-import slick.profile.BasicProfile
-import com.typesafe.config.ConfigFactory
-import util.Logging
-import play.api.Logger
-import java.io.File
-import play.api.Mode
-import util.renderers.ContentRenderers
-import scala.util.Failure
-import scala.util.Success
-import util.renderers.ContentWithAbstract
-import scala.collection.convert.decorateAsScala._
-import scala.util.Try
-import scala.util.Success
-import scala.util.Failure
-import java.io.FileNotFoundException
+import scala.util.{ Failure, Success, Try }
 import org.apache.commons.io.FileUtils
-import play.api.libs.json.Json
-import play.api.libs.json.DefaultFormat
 import org.joda.time.DateTime
-import java.util.Formatter.DateTime
+import org.joda.time.format.DateTimeFormat
+import com.typesafe.config.ConfigFactory
+import play.api.{ Logger, Mode }
+import play.api.libs.json.Json
+import models._
+import slick.backend.DatabaseConfig
+import slick.driver.MySQLDriver
+import slick.driver.MySQLDriver.api._
+import util.Logging
+import util.renderers.{ ContentRenderers, ContentWithAbstract, MarkdownContentRenderer }
+import org.apache.commons.io.FilenameUtils
 
 /**
  * Admin tasks.
@@ -43,10 +29,16 @@ object AdminTasks extends Logging {
 
   val number = "([0-9]+)".r
 
+  val mdFormat = MarkdownContentRenderer.renderFormat
+
+  lazy val config = ConfigFactory.defaultApplication()
+
+  def dbConfig = DatabaseConfig.forConfig[MySQLDriver](path = "slick.dbs.default", config = config)
+
   def main(args: Array[String]) = {
     Logger.init(new File("."), Mode.Dev)
     args.toList match {
-      case "schemify" :: Nil                         => schemify
+      case "clear" :: Nil                            => clear
       case "render" :: Nil                           => render(true, true, None)
       case "render" :: "blog" :: Nil                 => render(true, false, None)
       case "render" :: "static" :: Nil               => render(false, true, None)
@@ -60,7 +52,7 @@ object AdminTasks extends Logging {
 
   def help = {
     println("""|Admin Tasks:
-               | - schemify           : Create Database Schema (drop existing data!)
+               | - clear              : Clear all, ready for import
                | - render             : Render all blog entries and static pages
                | - render blog        : Render all blog entries
                | - render static      : Render all static pages
@@ -71,20 +63,19 @@ object AdminTasks extends Logging {
                |""".stripMargin)
   }
 
-  def schemify = {
-    log.info("Creating Database Schema ...")
+  def clear = {
     withDb {
       db =>
-        val schema = StaticPages.schema ++
-          BlogEntries.schema ++
-          Categories.schema ++
-          Attachments.schema ++
-          Tags.schema ++
-          BlogEntryHasTags.schema
-        schema.createStatements.foreach { println(_) }
-        db.run(DBIO.seq(
-          schema.drop,
-          schema.create))
+        val deletes = Seq(
+          Attachments.delete,
+          BlogEntryHasTags.delete,
+          BlogEntries.delete,
+          Categories.delete,
+          Tags.delete,
+          StaticPages.delete)
+        println(deletes.flatMap(_.statements).mkString("\nStatements:\n", ";\n", ";\n"))
+        val deleteAction = DBIO.sequence(deletes)
+        Await.result(db.run(deleteAction), Duration.Inf)
     }
   }
 
@@ -118,10 +109,12 @@ object AdminTasks extends Logging {
     }
   }
 
-  case class BlogMeta(title: String, category: String, tags: Seq[String], published: Boolean, publishDate: String) {
+  case class BlogMeta(title: String, category: String, tags: Seq[String], published: Boolean, publishDate: Option[String]) {
 
-    def getPublishDateAsDatetime: DateTime =
-      DateTime.parse(publishDate)
+    val dateTimePattern = "yy-MM-dd HH:mm:ss";
+
+    def getPublishDateAsDatetime: Option[DateTime] =
+      publishDate map { DateTime.parse(_, DateTimeFormat.forPattern(dateTimePattern)) }
 
   }
 
@@ -137,39 +130,145 @@ object AdminTasks extends Logging {
         blogFolder <- checkFile(new File(s"$importFolderBlog/$id"))
         contentFile <- checkFile(new File(blogFolder, "content.md"))
         metaFile <- checkFile(new File(blogFolder, "meta.json"))
-      } yield (blogFolder, contentFile, metaFile)
+        attachmentsFolder <- Success(Option(new File(blogFolder, "attachments")) filter { _.exists })
+      } yield (blogFolder, contentFile, metaFile, attachmentsFolder)
       importData match {
         case Failure(e) => log.error(s"Error finding file ${e.getMessage}")
-        case Success((blogFolder, contentFile, metaFile)) => {
+        case Success((blogFolder, contentFile, metaFile, attachmentsFolder)) => {
           val metaData = FileUtils.readFileToString(metaFile, "UTF-8")
           val contentData = FileUtils.readFileToString(contentFile, "UTF-8")
           val metaJson = Json.parse(metaData)
           metaJson.asOpt[BlogMeta] match {
-            case None => log.error(s"Error parsing $metaFile")
-            case Some(meta) => {
-              log.info(s"Import blog entry ${meta.title} (id: ${id})")
-            }
+            case None       => log.error(s"Error parsing $metaFile")
+            case Some(meta) => importBlogEntry(id, meta, contentData, attachmentsFolder)
           }
         }
       }
     }
   }
 
-  def checkFile(file: File): Try[File] = {
+  private def importBlogEntry(id: Int, meta: BlogMeta, content: String, attachmentsFolder: Option[File]) = {
+    log.info(s"Import blog entry ${meta.title} (id: ${id})")
+    withDb {
+      db =>
+
+        def getOrCreateCategory(title: String): Int = {
+          val categoryExistingQuery = db.run(Categories.filter(_.title === title).map { _.id }.result.headOption)
+          val categoryFuture = categoryExistingQuery flatMap {
+            _ match {
+              case Some(categoryExisting) => {
+                log.debug(s"Already found Category '$title': $categoryExisting")
+                Future.successful(categoryExisting)
+              }
+              case None => {
+                log.info(s"Inserted Category '$title'")
+                db.run((Categories returning Categories.map { _.id }) += Category(0, mkUrl(title), title))
+              }
+            }
+          }
+          Await.result(categoryFuture, Duration.Inf)
+        }
+
+        def getOrCreateTag(title: String): Int = {
+          val tagExistingQuery = db.run(Tags.filter(_.title === title).map { _.id }.result.headOption)
+          val tagFuture = tagExistingQuery flatMap {
+            _ match {
+              case Some(tagExisting) => {
+                log.debug(s"Already found Tag '$title': $tagExisting")
+                Future.successful(tagExisting)
+              }
+              case None => {
+                log.info(s"Inserted Tag '$title'")
+                db.run((Tags returning Tags.map { _.id }) += Tag(0, mkUrl(title), title))
+              }
+            }
+          }
+          Await.result(tagFuture, Duration.Inf)
+        }
+
+        case class BlogInsertResult(id: Int, inserted: Boolean)
+
+        def getOrInsertBlogEntry(blogEntry: BlogEntry): BlogInsertResult = {
+          val entryExistingQuery = db.run(BlogEntries.filter(_.url === blogEntry.url).map { _.id }.result.headOption)
+          val blogEntryFuture = entryExistingQuery flatMap {
+            _ match {
+              case Some(blogEntryExisting) => {
+                log.debug(s"Already found Blog Entry '${blogEntry.url}': $blogEntryExisting")
+                Future.successful(BlogInsertResult(blogEntryExisting, false))
+              }
+              case None => {
+                log.info(s"Inserted Blog Entry '${blogEntry.url}'")
+                db.run((BlogEntries returning BlogEntries.map { _.id }) += blogEntry) map (BlogInsertResult(_, true))
+              }
+            }
+          }
+          Await.result(blogEntryFuture, Duration.Inf)
+        }
+
+        val categoryId = getOrCreateCategory(meta.category)
+        val tagIds = meta.tags.map { getOrCreateTag(_) }
+        val url = mkUrl(meta.title)
+
+        val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content, mdFormat) match {
+          case None => {
+            log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")
+            ContentWithAbstract("error", "error")
+          }
+          case Some(Failure(e)) => {
+            log.error(s"Error during rendering of blog entry ${id}", e)
+            ContentWithAbstract("error", "error")
+          }
+          case Some(Success(contentWithAbstract)) => contentWithAbstract
+        }
+        val blogEntry = BlogEntry(0, categoryId, url, meta.title, content,
+          contentRendered, abstractRendered, mdFormat, meta.published, meta.getPublishDateAsDatetime, 0)
+
+        val BlogInsertResult(blogId, blogInserted) = getOrInsertBlogEntry(blogEntry)
+
+        if (blogInserted) {
+
+          // Add tags
+          val tagInserts = tagIds.map { tagId => BlogEntryHasTags += BlogEntryHasTag(0, blogId, tagId) }
+          Await.result(db.run(DBIO.sequence(tagInserts)), Duration.Inf)
+
+          // Attachments
+          attachmentsFolder foreach {
+            _.listFiles().foreach {
+              file =>
+                val filename = file.getName
+                val url = mkUrl(filename)
+                val filenameOpt = if (filename == url) None else Some(filename)
+                log.info(s"Add Attachment $filename")
+                val mediaFile = new File(s"media/blog/$blogId/$filename")
+                val mime = mimes(FilenameUtils.getExtension(filename))
+                FileUtils.copyFile(file, mediaFile)
+                val attachment = Attachment(0, blogId, mkUrl(filename), filenameOpt, AttachmentTypes.InlineAttachment, mime, 0)
+                Await.result(db.run(Attachments += attachment), Duration.Inf)
+            }
+          }
+
+        }
+    }
+  }
+
+  val mimes = Map(
+    "png" -> "image/png",
+    "jpg" -> "image/jpeg",
+    "gif" -> "image/gif")
+
+  private def mkUrl(title: String) = {
+    title.toLowerCase.replace(" ", "-").replace("ö", "oe").replace("ü", "ue").replace("ä", "ae").replace("ß", "ss").replace(":", "")
+  }
+
+  private def checkFile(file: File): Try[File] = {
     if (file.exists())
       Success(file)
     else
       Failure(new FileNotFoundException(s"File $file not found"))
   }
 
-  lazy val config = ConfigFactory.defaultApplication()
-
-  def getDb = {
-    DatabaseConfig.forConfig[MySQLDriver](path = "slick.dbs.default", config = config)
-  }
-
-  def withDb(block: Database => Unit) = {
-    val db = getDb.db
+  private def withDb(block: Database => Unit) = {
+    val db = dbConfig.db
     try {
       block(db)
     } finally db.close

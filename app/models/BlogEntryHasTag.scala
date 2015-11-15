@@ -11,7 +11,7 @@ case class BlogEntryHasTag(
 class BlogEntryHasTagTable(tag: SlickTag)
     extends Table[BlogEntryHasTag](tag, "blog_has_tag") with KeyedEntityTable {
 
-  def id = column[Int]("id", O.PrimaryKey)
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def blogId = column[Int]("blog_id")
   def tagId = column[Int]("tag_id")
 

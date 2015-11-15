@@ -11,7 +11,7 @@ case class Category(
 class CategoryTable(tag: SlickTag)
     extends Table[Category](tag, "category") with KeyedEntityTable {
 
-  def id = column[Int]("id", O.PrimaryKey)
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def url = column[String]("url")
   def title = column[String]("title")
 

@@ -67,7 +67,7 @@ CREATE TABLE `attachment` (
     `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT "Primary key",
     `blog_id` BIGINT(20) NOT NULL COMMENT "Foreign key to blog entry",
     `url` VARCHAR(255) COLLATE utf8_bin NOT NULL COMMENT "Attachment URL",
-    `filename` VARCHAR(1024) COLLATE utf8_bin NOT NULL COMMENT "Attachment filename",
+    `filename` VARCHAR(1024) COLLATE utf8_bin DEFAULT NULL COMMENT "Attachment filename",
     `attachment_type` VARCHAR(255) COLLATE utf8_bin NOT NULL COMMENT "Attachment type",
     `mime` VARCHAR(255) COLLATE utf8_bin NOT NULL COMMENT "MIME type",
     `downloads` INT NOT NULL COMMENT "Number of downloads",

@@ -14,7 +14,7 @@ case class StaticPage(
 class StaticPageTable(tag: SlickTag)
     extends Table[StaticPage](tag, "static") with KeyedEntityTable {
 
-  def id = column[Int]("id", O.PrimaryKey)
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def url = column[String]("url")
   def title = column[String]("title")
   def content = column[String]("content")

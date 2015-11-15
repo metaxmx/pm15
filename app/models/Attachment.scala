@@ -43,7 +43,7 @@ case class Attachment(
 class AttachmentTable(tag: SlickTag)
     extends Table[Attachment](tag, "attachment") with KeyedEntityTable {
 
-  def id = column[Int]("id", O.PrimaryKey)
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def blogId = column[Int]("blog_id")
   def url = column[String]("url")
   def filename = column[Option[String]]("filename")
