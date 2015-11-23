@@ -22,6 +22,11 @@ GET     /                                     @controllers.StaticPageController.
 GET     /admin/                               @controllers.AdminController.adminPage
 GET     /:page/                               @controllers.StaticPageController.showStaticPage(page: String)
 
+# RSS
+GET     /blog/rss.xml                         @controllers.RssController.showRss
+# RSS (legacy)
+GET     /html/Weblog/RSS/                     @controllers.RssController.showRss
+
 # Admin
 GET     /admin/staticpage/new.html            @controllers.AdminController.showNewStaticPage
 POST    /admin/staticpage/new.html            @controllers.AdminController.saveNewStaticPage

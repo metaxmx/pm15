@@ -20,7 +20,7 @@ import util.Logging
 @Singleton
 class BlogController @Inject() (blogService: BlogService) extends AbstractController with Logging {
 
-  val BLOG_ENTRIES_PER_PAGE = 1
+  val BLOG_ENTRIES_PER_PAGE = 10
 
   lazy val mediaBasePath = current.configuration.getString("media.path") getOrElse { throw new ConfigException.Missing("media.path") }
 

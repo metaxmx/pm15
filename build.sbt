@@ -56,3 +56,4 @@ EclipseKeys.preTasks := Seq(compile in Compile, compile in Test)
 
 EclipseKeys.withSource := true
 
+fork in run := false
