@@ -26,8 +26,10 @@ import org.apache.commons.io.FilenameUtils
 object AdminTasks extends Logging {
 
   val importFolderBlog = "import/blog"
+  val importFolderStatic = "import/static"
 
-  val number = "([0-9]+)".r
+  val iId = "([0-9]+)".r
+  val sId = "([a-zA-Z0-9]+)".r
 
   val mdFormat = MarkdownContentRenderer.renderFormat
 
@@ -38,28 +40,34 @@ object AdminTasks extends Logging {
   def main(args: Array[String]) = {
     Logger.init(new File("."), Mode.Dev)
     args.toList match {
-      case "clear" :: Nil                            => clear
-      case "render" :: Nil                           => render(true, true, None)
-      case "render" :: "blog" :: Nil                 => render(true, false, None)
-      case "render" :: "static" :: Nil               => render(false, true, None)
-      case "render" :: "blog" :: number(id) :: Nil   => render(true, false, Some(id.toInt))
-      case "render" :: "static" :: number(id) :: Nil => render(false, true, Some(id.toInt))
-      case "import" :: Nil                           => importBlog(None)
-      case "import" :: number(id) :: Nil             => importBlog(Some(id.toInt))
-      case _                                         => help
+      case "clear" :: Nil                          => clear
+      case "render" :: Nil                         => render(true, true, None)
+      case "render" :: "blog" :: Nil               => render(true, false, None)
+      case "render" :: "static" :: Nil             => render(false, true, None)
+      case "render" :: "blog" :: iId(id) :: Nil    => render(true, false, Some(id.toInt))
+      case "render" :: "static" :: iId(id) :: Nil  => render(false, true, Some(id.toInt))
+      case "import" :: Nil                         => importAll
+      case "import" :: "blog" :: Nil               => importBlog()
+      case "import" :: "blog" :: iId(id) :: Nil    => importBlog(Some(id.toInt))
+      case "import" :: "static" :: Nil             => importStatic()
+      case "import" :: "static" :: sId(url) :: Nil => importStatic(Some(url))
+      case _                                       => help
     }
   }
 
   def help = {
     println("""|Admin Tasks:
-               | - clear              : Clear all, ready for import
-               | - render             : Render all blog entries and static pages
-               | - render blog        : Render all blog entries
-               | - render static      : Render all static pages
-               | - render blog <id>   : Render only blog entry <id>
-               | - render static <id> : Render only static page <id>
-               | - import             : Import all Blog Entries
-               | - import <id>        : Import Blog Entry with id <id>
+               | - clear               : Clear all, ready for import
+               | - render              : Render all blog entries and static pages
+               | - render blog         : Render all blog entries
+               | - render static       : Render all static pages
+               | - render blog <id>    : Render only blog entry <id>
+               | - render static <id>  : Render only static page <id>
+               | - import              : Import both Blog Entries and Static Pages
+               | - import blog         : Import all Blog Entries
+               | - import blog <id>    : Import Blog Entry with id <id>
+               | - import static       : Import all static pages
+               | - import static <url> : Import static page <url>
                |""".stripMargin)
   }
 
@@ -109,6 +117,11 @@ object AdminTasks extends Logging {
     }
   }
 
+  def importAll = {
+    importBlog()
+    importStatic()
+  }
+
   case class BlogMeta(title: String, category: String, tags: Seq[String], published: Boolean, publishDate: Option[String]) {
 
     val dateTimePattern = "yy-MM-dd HH:mm:ss";
@@ -120,7 +133,7 @@ object AdminTasks extends Logging {
 
   implicit val blogMetaFormat = Json.format[BlogMeta]
 
-  def importBlog(id: Option[Int]): Unit = id match {
+  def importBlog(id: Option[Int] = None): Unit = id match {
     case None => {
       val importBlogFolder = new File(importFolderBlog)
       importBlogFolder.listFiles().filter(_.getName.matches("[0-9]+")).foreach { f => importBlog(Some(f.getName.toInt)) }
@@ -248,6 +261,77 @@ object AdminTasks extends Logging {
           }
 
         }
+    }
+  }
+
+  case class StaticMeta(title: String)
+
+  implicit val staticMetaFormat = Json.format[StaticMeta]
+
+  private def importStatic(url: Option[String] = None): Unit = url match {
+    case None => {
+      val importStaticFolder = new File(importFolderStatic)
+      importStaticFolder.listFiles() filter {
+        file =>
+          sId.pattern.matcher(file.getName).matches
+      } foreach {
+        file => importStatic(Some(file.getName))
+      }
+    }
+    case Some(url) => {
+      val importData = for {
+        staticFolder <- checkFile(new File(s"$importFolderStatic/$url"))
+        contentFile <- checkFile(new File(staticFolder, "content.md"))
+        metaFile <- checkFile(new File(staticFolder, "meta.json"))
+        assetsFolder <- Success(Option(new File(staticFolder, "assets")) filter { _.exists })
+      } yield (staticFolder, contentFile, metaFile, assetsFolder)
+      importData match {
+        case Failure(e) => log.error(s"Error finding file ${e.getMessage}")
+        case Success((blogFolder, contentFile, metaFile, attachmentsFolder)) => {
+          val metaData = FileUtils.readFileToString(metaFile, "UTF-8")
+          val contentData = FileUtils.readFileToString(contentFile, "UTF-8")
+          val metaJson = Json.parse(metaData)
+          metaJson.asOpt[StaticMeta] match {
+            case None       => log.error(s"Error parsing $metaFile")
+            case Some(meta) => importStaticPage(url, meta, contentData, attachmentsFolder)
+          }
+        }
+      }
+    }
+  }
+
+  private def importStaticPage(url: String, meta: StaticMeta, content: String, assetsFolder: Option[File]) = {
+    log.info(s"Import Static page ${meta.title} (url: ${url})")
+    withDb {
+      db =>
+
+        val ContentWithAbstract(_, contentRendered) = ContentRenderers.render(content, mdFormat) match {
+          case None => {
+            log.error(s"Content Format ${mdFormat} in static page ${url} not defined.")
+            ContentWithAbstract("error", "error")
+          }
+          case Some(Failure(e)) => {
+            log.error(s"Error during rendering of static page ${url}", e)
+            ContentWithAbstract("error", "error")
+          }
+          case Some(Success(contentWithAbstract)) => contentWithAbstract
+        }
+
+        val staticPage = new StaticPage(0, url, meta.title, content, contentRendered, mdFormat)
+
+        val staticExistingQuery = db.run(StaticPages.filter(_.url === url).result.headOption) flatMap {
+          case Some(static) => {
+            log.info(s"Static Page '${url}' already existing.")
+            Future.successful(static.id)
+          }
+          case None => {
+            log.info(s"Inserted Static Page '${url}'")
+            db.run((StaticPages returning StaticPages.map { _.id }) += staticPage)
+          }
+        }
+        val insertedResult = Await.result(staticExistingQuery, Duration.Inf)
+
+      // TODO: Assets
     }
   }
 

@@ -2,5 +2,5 @@
 @import models.StaticPage
 @(staticPage: StaticPage)
 @template(staticPage.title) {
-	@Html(staticPage.content)
+	@Html(staticPage.contentRendered)
 }

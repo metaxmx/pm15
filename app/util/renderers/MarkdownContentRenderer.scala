@@ -9,7 +9,7 @@ object MarkdownContentRenderer extends ContentRenderer {
 
   def MAX_PARSING_TIME = 20000
 
-  def EXTENSIONS = Extensions.ALL_WITH_OPTIONALS
+  def EXTENSIONS = Extensions.ALL_WITH_OPTIONALS ^ Extensions.ANCHORLINKS
 
   override def render(source: String) = {
     val processor = new PegDownProcessor(EXTENSIONS, MAX_PARSING_TIME)
