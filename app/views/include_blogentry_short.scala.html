@@ -18,21 +18,15 @@
 		@Html(entry.blogEntry.abstractRendered)
 	</div>
 	<div class="blogMetaBottom">
-		<div>
-			Kategorie:
-			<a href="@routes.BlogController.blogByCategory(entry.category.url)">
-				@entry.category.title
-			</a>
+		<div class="blogCategory">Kategorie:
+			<a href="@routes.BlogController.blogByCategory(entry.category.url)">@entry.category.title</a>
 		</div>
 		@if(!entry.tags.isEmpty) {
-			<div>
-				Schlagworte:
+			<div class="blogTags">Schlagworte:
 				<ul class="tags">
 				@for(tag <- entry.tags) {
 					<li>
-					<a href="@routes.BlogController.blogByTag(tag.url)">
-						@tag.title
-					</a>
+						<a href="@routes.BlogController.blogByTag(tag.url)">@tag.title</a>
 					</li>
 				}
 				</ul>

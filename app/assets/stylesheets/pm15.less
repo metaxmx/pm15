@@ -1,4 +1,6 @@
 
+@import "mixins.less";
+
 @screen-lg-min: 1050px;
 @screen-sm-max: (@screen-lg-min - 1px);
 
@@ -293,4 +295,64 @@ code.highlight {
 
 div.clear {
 	clear: both;
+}
+
+h1 {
+	margin-bottom: 20px;
+	border-bottom: 1px dotted #999999;
+}
+
+.blogMetaTop {
+	.border-top-radius(4px);
+}
+
+.blogMetaBottom {
+	.border-bottom-radius(4px);
+}
+
+.blogMetaTop, .blogMetaBottom {
+	.vertical-gradient(#2e2e2e, #1f2c39);
+	padding: 4px 12px;
+	color: #ffffff;
+	
+	a {
+		color: #dddddd;
+		text-decoration: underline;
+		
+		&:hover, &:focus {
+			color: #ffffff;
+		}
+	}
+	
+	.blogCategory {
+		display: inline;
+	}
+	
+	.blogTags {
+		display: inline;
+		&:before {
+			content: "·";
+			display: inline-block;
+			margin: 0;
+			padding: 0 8px;
+		}
+		
+		ul {
+			display: inline;
+			margin: 0 0 0 4px;
+			padding: 0;
+			list-style: none;
+			
+			li {
+				display: inline;
+				margin: 0 4px 0 0;
+				padding: 0;
+				list-style: none;
+			}
+		}
+	}
+}
+
+.blogentry > h2 {
+	margin-top: 30px;
 }
