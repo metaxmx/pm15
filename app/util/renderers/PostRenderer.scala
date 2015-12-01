@@ -13,7 +13,7 @@ trait PostRenderer {
 
 object PostRenderers {
 
-  val postRenderers: Seq[PostRenderer] = Seq(CodeHighlightingPostRenderer)
+  val postRenderers: Seq[PostRenderer] = CodeHighlightingPostRenderer :: ExternalLinksPostRenderer :: Nil
 
   def postRender(renderedContent: ContentWithAbstract, format: String): Try[ContentWithAbstract] = Try {
     postRenderers.filter(_.include(format)).foldLeft(renderedContent)((content, postRenderer) => postRenderer render content)

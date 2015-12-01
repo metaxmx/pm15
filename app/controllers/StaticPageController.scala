@@ -2,23 +2,31 @@ package controllers
 
 import javax.inject.Singleton
 import javax.inject.Inject
-import services.StaticPageService
 import play.api.mvc._
 import util.exception.PageExceptions
 import play.api.libs.concurrent.Execution.Implicits._
 
 @Singleton
-class StaticPageController @Inject() (staticPageService: StaticPageService) extends AbstractController {
+class StaticPageController extends AbstractController {
 
-  val indexUrl = "index"
+  def showIndexPage = PageAction {
+    Ok(views.html.page_index())
+  }
 
-  def showIndexPage = showStaticPage(indexUrl)
+  def showImpressumPage = PageAction {
+    Ok(views.html.page_impressum())
+  }
 
-  def showStaticPage(url: String) = PageAction.async {
-    staticPageService.getByUrlRequired(url) map {
-      staticPage =>
-        Ok(views.html.staticpage(staticPage))
-    }
+  def showDatenschutzPage = PageAction {
+    Ok(views.html.page_datenschutz())
+  }
+
+  def showProfilPage = PageAction {
+    Ok(views.html.page_profil())
+  }
+
+  def showKontaktPage = PageAction {
+    Ok(views.html.page_kontakt())
   }
 
 }

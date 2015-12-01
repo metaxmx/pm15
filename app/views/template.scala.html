@@ -20,9 +20,8 @@
 	<ul id="mainmenu">
 		<li><a href="@routes.StaticPageController.showIndexPage()">Startseite</a></li>
 		<li><a href="@routes.BlogController.blogOverview()">Blog</a></li>
-		<li><a href="@routes.StaticPageController.showStaticPage("artikel")">Artikel</a></li>
-		<li><a href="@routes.StaticPageController.showStaticPage("profil")">Profil</a></li>
-		<li><a href="@routes.StaticPageController.showStaticPage("kontakt")">Kontakt</a></li>
+		<li><a href="@routes.StaticPageController.showProfilPage()">Profil</a></li>
+		<li><a href="@routes.StaticPageController.showKontaktPage()">Kontakt</a></li>
 	</ul>
 </header>
 <div id="container">
@@ -36,13 +35,10 @@
 			<h3>Weitere Informationen</h3>
 			<ul>
 				<li>
-					<a href="@routes.StaticPageController.showStaticPage("impressum")">Impressum</a>
+					<a href="@routes.StaticPageController.showImpressumPage()">Impressum</a>
 				</li>
 				<li>
-					<a href="@routes.StaticPageController.showStaticPage("datenschutz")">Datenschutzvereinbarung</a>
-				</li>
-				<li>
-					<a href="@routes.StaticPageController.showStaticPage("faq")">FAQ</a>
+					<a href="@routes.StaticPageController.showDatenschutzPage()">Datenschutzvereinbarung</a>
 				</li>
 			</ul>
 		</div>
@@ -77,6 +73,7 @@
 	</div>
 	<div id="copyright">
 		<div>
+			<span class="pull-right">Powered by <a href="https://github.com/metaxmx/pm15" target="_blank">pm15</a>.</span>
 			Copyright 2015 by Christian Simon &middot; Alle Rechte vorbehalten
 		</div>
 	</div>

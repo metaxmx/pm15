@@ -2,18 +2,6 @@
  
 # --- !Ups
 
-CREATE TABLE `static` (
-    `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT "Primary key",
-    `url` VARCHAR(255) COLLATE utf8_bin NOT NULL COMMENT "Page URL",
-    `title` VARCHAR(1024) COLLATE utf8_bin NOT NULL COMMENT "Page Title",
-    `content` LONGTEXT NOT NULL COMMENT "Page Content",
-    `content_rendered` LONGTEXT NOT NULL COMMENT "Page Content (rendered as HTML)",
-    `content_format` VARCHAR(255) NOT NULL COMMENT "Page Render Format",
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `key_static_unique_url` (`url`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
-COMMENT "Static Page table";
-
 CREATE TABLE `category` (
     `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT "Primary key",
     `url` VARCHAR(255) COLLATE utf8_bin NOT NULL COMMENT "Category URL",
@@ -89,5 +77,3 @@ DROP TABLE `blog`;
 DROP TABLE `tag`;
 
 DROP TABLE `category`;
-
-DROP TABLE `static`;

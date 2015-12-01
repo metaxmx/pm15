@@ -1,7 +1,6 @@
 package controllers
 
 import javax.inject._
-import services.StaticPageService
 import services.BlogService
 import play.api.libs.concurrent.Execution.Implicits._
 import util.exception.PageExceptions
@@ -14,7 +13,7 @@ import play.api.i18n.MessagesApi
 case class StaticPageData(title: String, url: String, content: String)
 
 @Singleton
-class AdminController @Inject() (staticPageService: StaticPageService, blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
+class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
 
   /*
    * Overview
@@ -22,46 +21,8 @@ class AdminController @Inject() (staticPageService: StaticPageService, blogServi
 
   def adminPage = AdminAction.async {
     for {
-      staticPages <- staticPageService.getAll()
       blogEntries <- blogService.getAll()
-    } yield Ok(views.html.admin(staticPages, blogEntries))
-  }
-
-  /*
-   * Static Pages
-   */
-
-  val staticPageDataForm = Form(
-    mapping(
-      "title" -> nonEmptyText,
-      "url" -> nonEmptyText,
-      "content" -> nonEmptyText)(StaticPageData.apply)(StaticPageData.unapply))
-
-  def showEditStaticPage(id: Int) = AdminAction.async {
-    implicit request =>
-      staticPageService.getByIdRequired(id) map {
-        staticPage =>
-          val formData = StaticPageData(staticPage.title, staticPage.url, staticPage.content)
-          val form = staticPageDataForm.fill(formData)
-          Ok(views.html.adminstatic(staticPage, form))
-      }
-  }
-
-  def saveEditStaticPage(id: Int) = AdminAction.async {
-    implicit request =>
-      val form = staticPageDataForm.bindFromRequest
-      staticPageService.getByIdRequired(id) map {
-        staticPage =>
-          Ok(views.html.adminstatic(staticPage, form))
-      }
-  }
-
-  def showNewStaticPage() = AdminAction.async {
-    Future successful Ok(views.html.error_notfound("dummy"))
-  }
-
-  def saveNewStaticPage() = AdminAction.async {
-    Future successful Ok(views.html.error_notfound("dummy"))
+    } yield Ok(views.html.admin(blogEntries))
   }
 
   def showEditBlogEntry(id: Int) = AdminAction.async {

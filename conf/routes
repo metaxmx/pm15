@@ -19,8 +19,11 @@ GET    /blog/:id/:url/:file                   @controllers.BlogController.attach
 
 # Static Page
 GET     /                                     @controllers.StaticPageController.showIndexPage
+GET     /kontakt/                             @controllers.StaticPageController.showKontaktPage
+GET     /profil/                              @controllers.StaticPageController.showProfilPage
+GET     /impressum/                           @controllers.StaticPageController.showImpressumPage
+GET     /datenschutz/                         @controllers.StaticPageController.showDatenschutzPage
 GET     /admin/                               @controllers.AdminController.adminPage
-GET     /:page/                               @controllers.StaticPageController.showStaticPage(page: String)
 
 # RSS
 GET     /blog/rss.xml                         @controllers.RssController.showRss
@@ -28,11 +31,6 @@ GET     /blog/rss.xml                         @controllers.RssController.showRss
 GET     /html/Weblog/RSS/                     @controllers.RssController.showRss
 
 # Admin
-GET     /admin/staticpage/new.html            @controllers.AdminController.showNewStaticPage
-POST    /admin/staticpage/new.html            @controllers.AdminController.saveNewStaticPage
-GET     /admin/staticpage/:id.html            @controllers.AdminController.showEditStaticPage(id: Int)
-POST    /admin/staticpage/:id.html            @controllers.AdminController.saveEditStaticPage(id: Int)
-
 GET     /admin/blog/new.html                  @controllers.AdminController.showNewBlogEntry
 POST    /admin/blog/new.html                  @controllers.AdminController.saveNewBlogEntry
 GET     /admin/blog/:id.html                  @controllers.AdminController.showEditBlogEntry(id: Int)
