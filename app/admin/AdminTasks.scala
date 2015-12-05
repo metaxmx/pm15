@@ -21,6 +21,7 @@ import util.renderers.{ ContentRenderers, ContentWithAbstract, MarkdownContentRe
 import org.apache.commons.io.FilenameUtils
 import util.renderers.RenderContext
 import util.renderers.RenderTypeBlog
+import controllers.routes
 
 /**
  * Admin tasks.
@@ -41,6 +42,7 @@ object AdminTasks extends Logging {
   def main(args: Array[String]) = {
     Logger.init(new File("."), Mode.Dev)
     args.toList match {
+      case "reset" :: Nil               => reset
       case "clear" :: Nil               => clear
       case "render" :: Nil              => render(None)
       case "render" :: intId(id) :: Nil => render(Some(id.toInt))
@@ -52,12 +54,18 @@ object AdminTasks extends Logging {
 
   def help = {
     println("""|Admin Tasks:
+               | - reset          : Run clear, then import
                | - clear          : Clear all, ready for import
                | - render         : Render all blog entries
                | - render <id>    : Render only blog entry <id>
                | - import         : Import all blog entries
                | - import <id>    : Import blog entry with id <id>
                |""".stripMargin)
+  }
+
+  def reset = {
+    clear
+    importBlog()
   }
 
   def clear = {
@@ -87,8 +95,9 @@ object AdminTasks extends Logging {
         blogs.foreach {
           blog =>
             log.info(s"Render Blog ${blog.id}")
-            val attachmentsFolder = Option(new File(s"media/blog/${blog.id}")) filter {_.isDirectory}
-            implicit val context = RenderContext(RenderTypeBlog, blog.contentFormat, attachmentsFolder)
+            val attachmentsFolder = Option(new File(s"media/blog/${blog.id}")) filter { _.isDirectory }
+            implicit val context = RenderContext(RenderTypeBlog, blog.contentFormat, attachmentsFolder,
+                routes.BlogController.showBlogEntry(blog.url), routes.BlogController.attachment(blog.url, _))
             ContentRenderers.render(blog.content) match {
               case None             => log.warn(s"Content Format ${blog.contentFormat} in blog entry ${blog.id} not defined.")
               case Some(Failure(e)) => log.error(s"Error during rendering of blog entry ${blog.id}", e)
@@ -115,8 +124,10 @@ object AdminTasks extends Logging {
 
   def importBlog(id: Option[Int] = None): Unit = id match {
     case None => {
-      val importBlogFolder = new File(importFolderBlog)
-      importBlogFolder.listFiles().filter(_.getName.matches("[0-9]+")).foreach { f => importBlog(Some(f.getName.toInt)) }
+      val importBlogFolder = Option(new File(importFolderBlog)).filter(_.isDirectory)
+      importBlogFolder.foreach {
+        _.listFiles.filter(_.getName.matches("[0-9]+")).foreach { f => importBlog(Some(f.getName.toInt)) }
+      }
     }
     case Some(id) => {
       val importData = for {
@@ -202,7 +213,8 @@ object AdminTasks extends Logging {
         val tagIds = meta.tags.map { getOrCreateTag(_) }
         val url = mkUrl(meta.title)
 
-        implicit val context = RenderContext(RenderTypeBlog, mdFormat, attachmentsFolder)
+        implicit val context = RenderContext(RenderTypeBlog, mdFormat, attachmentsFolder,
+            routes.BlogController.showBlogEntry(url), routes.BlogController.attachment(url, _))
         val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content) match {
           case None => {
             log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")
@@ -234,7 +246,8 @@ object AdminTasks extends Logging {
                 val filenameOpt = if (filename == url) None else Some(filename)
                 log.info(s"Add Attachment $filename")
                 val mediaFile = new File(s"media/blog/$blogId/$filename")
-                val mime = mimes(FilenameUtils.getExtension(filename))
+                val extension = FilenameUtils.getExtension(filename)
+                val mime = mimes.get(extension).getOrElse(throw new IllegalArgumentException(s"Unknown MIME type for extension $extension"))
                 FileUtils.copyFile(file, mediaFile)
                 val attachment = Attachment(0, blogId, mkUrl(filename), filenameOpt, AttachmentTypes.InlineAttachment, mime, 0)
                 Await.result(db.run(Attachments += attachment), Duration.Inf)
@@ -248,7 +261,8 @@ object AdminTasks extends Logging {
   val mimes = Map(
     "png" -> "image/png",
     "jpg" -> "image/jpeg",
-    "gif" -> "image/gif")
+    "gif" -> "image/gif",
+    "java" -> "text/x-java-source")
 
   private def mkUrl(title: String) = {
     title.toLowerCase.replace(" ", "-").replace("ö", "oe").replace("ü", "ue").replace("ä", "ae").replace("ß", "ss").replace(":", "")

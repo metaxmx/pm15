@@ -69,9 +69,9 @@ class BlogController @Inject() (blogService: BlogService) extends AbstractContro
       routes.BlogController.blogByMonth(year, month), routes.BlogController.blogByMonthPage(year, month, _))
   }
 
-  def showBlogEntry(id: Int, url: String) = PageAction.async {
+  def showBlogEntry(url: String) = PageAction.async {
     for {
-      blogEntry <- blogService.getByIdWithMetaRequired(id)
+      blogEntry <- blogService.getByUrlWithMetaRequired(url)
     } yield Ok(views.html.blogentry(blogEntry))
   }
 
@@ -117,13 +117,13 @@ class BlogController @Inject() (blogService: BlogService) extends AbstractContro
     Pagination(first, prev, current, max, next, last, pager)
   }
 
-  def attachment(blogid: Int, blogurl: String, attachmenturl: String) = PageAction.async {
+  def attachment(blogurl: String, attachmenturl: String) = PageAction.async {
     for {
-      attachment <- blogService.getAttachmentRequired(blogid, attachmenturl)
+      attachment <- blogService.getAttachmentRequired(blogurl, attachmenturl)
     } yield Ok(readAttachment(attachment)).as(attachment.mime)
   }
 
-  def readAttachment(attachment: Attachment): Array[Byte] = {
+  private def readAttachment(attachment: Attachment): Array[Byte] = {
     val blogEntryDir = new File(mediaBaseFile, s"blog/${attachment.blogId}")
     val file = new File(blogEntryDir, attachment.filename.getOrElse(attachment.url))
     if (!file.exists) {

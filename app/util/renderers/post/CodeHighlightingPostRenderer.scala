@@ -5,6 +5,7 @@ import scala.collection.convert.wrapAsScala._
 import org.python.util.PythonInterpreter
 import util.renderers.ContentWithAbstract
 import util.renderers.RenderContext
+import org.jsoup.nodes.Node
 
 object CodeHighlightingPostRenderer extends PostRenderer {
 
@@ -23,7 +24,9 @@ object CodeHighlightingPostRenderer extends PostRenderer {
         if (highlighted.body.children.size == 1 && highlighted.body.child(0).children.size == 1) {
           // Pygments renders highlighted in inside <div class="highlight"><pre>, so its
           // code.highlight > div.highlight > pre after the conversion
-          code.html(highlighted.body.child(0).child(0).html)
+          val highlightedContainer = highlighted.body.child(0).child(0)
+          code.empty()
+          code.appendChild(highlightedContainer)
           code.addClass("highlight")
         }
       // else: The syntax highlighter for the language was not found, no replacement

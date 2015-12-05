@@ -16,7 +16,11 @@ trait PostRenderer {
 
 object PostRenderers {
 
-  val postRenderers: Seq[PostRenderer] = CodeHighlightingPostRenderer :: ExternalLinksPostRenderer :: Nil
+  val postRenderers: Seq[PostRenderer] =
+    CodeHighlightingPostRenderer ::
+      ExternalLinksPostRenderer ::
+      AttachmentImageUrlPostRenderer ::
+      Nil
 
   def postRender(renderedContent: ContentWithAbstract)(implicit context: RenderContext): Try[ContentWithAbstract] = Try {
     postRenderers.filter(_.include).foldLeft(renderedContent)((content, postRenderer) => postRenderer render content)

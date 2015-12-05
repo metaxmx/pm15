@@ -2,7 +2,7 @@
 @import viewmodels.BlogEntryWithMeta
 @(entry: BlogEntryWithMeta)
 <section class="blogentry">
-	<h2><a href="@routes.BlogController.showBlogEntry(entry.blogEntry.id, entry.blogEntry.url)">@entry.blogEntry.title</a></h2>
+	<h2><a href="@routes.BlogController.showBlogEntry(entry.blogEntry.url)">@entry.blogEntry.title</a></h2>
 	<div class="blogMetaTop">
 		@if(entry.blogEntry.published && entry.blogEntry.publishedDate.isDefined) {
 			Veröffentlicht am @{entry.blogEntry.publishedDate.get.getDayOfMonth}.

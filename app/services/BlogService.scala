@@ -23,14 +23,18 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
 
   def getByIdWithMetaRequired(id: Int) = require(getByIdWithMeta(id))
 
+  def getByUrlWithMeta(url: String) = blogEntryDAO.getWithMetaByUrl(url)
+
+  def getByUrlWithMetaRequired(url: String) = require(getByUrlWithMeta(url))
+
   def getListWithMeta() = blogEntryDAO.getListWithMeta() map { BlogEntryData(_) }
 
   def getTagRequired(url: String) = require(tagDAO.getByUrl(url))
 
   def getCategoryRequired(url: String) = require(catDAO.getByUrl(url))
 
-  def getAttachment(blogId: Int, url: String) = attachmentDAO.getByBlogIdAndUrl(blogId, url)
+  def getAttachment(blogurl: String, url: String) = attachmentDAO.getByBlogUrlAndAttachmentUrl(blogurl, url)
 
-  def getAttachmentRequired(blogId: Int, url: String) = require(getAttachment(blogId, url))
+  def getAttachmentRequired(blogurl: String, url: String) = require(getAttachment(blogurl, url))
 
 }

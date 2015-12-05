@@ -4,13 +4,14 @@ import scala.util.Try
 import util.renderers.post.PostRenderers
 import java.io.File
 import util.renderers.pre.PreRenderers
+import play.api.mvc.Call
 
 case class ContentWithAbstract(abstractText: String, content: String)
 
 sealed trait RenderType
 case object RenderTypeBlog extends RenderType
 
-case class RenderContext(renderType: RenderType, format: String, attachments: Option[File])
+case class RenderContext(renderType: RenderType, format: String, attachments: Option[File], call: Call, attachmentCall: String => Call)
 
 trait ContentRenderer {
 

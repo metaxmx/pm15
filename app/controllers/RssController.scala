@@ -74,7 +74,7 @@ class RssController @Inject() (blogService: BlogService) extends AbstractControl
   }
 
   private def rssItem(entry: BlogEntryWithMeta)(implicit request: Request[_]) = {
-    val url = routes.BlogController.showBlogEntry(entry.blogEntry.id, entry.blogEntry.url).absoluteURL()
+    val url = routes.BlogController.showBlogEntry(entry.blogEntry.url).absoluteURL()
     <item>
       <title>{ entry.blogEntry.title }</title>
       <link>{ url }</link>

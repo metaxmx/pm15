@@ -14,8 +14,8 @@ GET    /blog/archiv/:year/                    @controllers.BlogController.blogBy
 GET    /blog/archiv/:year/seite:page/         @controllers.BlogController.blogByYearPage(year: Int, page: Int)
 GET    /blog/archiv/:year/:month/             @controllers.BlogController.blogByMonth(year: Int, month: Int)
 GET    /blog/archiv/:year/:month/seite:page/  @controllers.BlogController.blogByMonthPage(year: Int, month: Int, page: Int)
-GET    /blog/:id/:url/                        @controllers.BlogController.showBlogEntry(id: Int, url)
-GET    /blog/:id/:url/:file                   @controllers.BlogController.attachment(id: Int, url, file)
+GET    /blog/:url/                            @controllers.BlogController.showBlogEntry(url)
+GET    /blog/:url/:file                       @controllers.BlogController.attachment(url, file)
 
 # Static Page
 GET     /                                     @controllers.StaticPageController.showIndexPage
