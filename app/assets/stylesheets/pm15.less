@@ -3,6 +3,9 @@
 
 @screen-lg-min: 1050px;
 @screen-sm-max: (@screen-lg-min - 1px);
+@screen-xs-max: (@screen-lg-min - 1px);
+@screen-sm-min: 768px;
+@screen-xs-max: (@screen-sm-min - 1);
 
 @container-max: 1000px;
 
@@ -113,7 +116,7 @@ header {
 }
 
 footer {
-	background: #0c1a30 url("/assets/images/footer_split.gif") 0px 0px repeat-x;
+	background: #0c1a30 url("/assets/images/footer_split.gif") 0px -2px repeat-x;
 	color: #ffffff;
 	padding: 24px 0 0;
 	
@@ -142,6 +145,13 @@ footer {
 			padding-bottom: 24px;
 			
 			&#socialmedia {
+				margin-right: 0;
+			}
+			
+			@media(max-width: @screen-xs-max) {
+				float: none;
+				padding-bottom: 4px;
+				width: auto;
 				margin-right: 0;
 			}
 			
@@ -366,4 +376,14 @@ h1 {
 
 .blogentry > h2 {
 	margin-top: 30px;
+}
+
+.contact-page-image {
+	float: right;
+	
+	@media(max-width: @screen-xs-max) {
+		display: block;
+		float: none;
+		margin: 0 auto 8px;
+	}
 }
