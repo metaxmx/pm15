@@ -13,6 +13,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeZone
 import java.util.Locale
 import scala.xml.PCData
+import scala.xml.PrettyPrinter
 
 @Singleton
 class RssController @Inject() (blogService: BlogService) extends AbstractController {
@@ -69,7 +70,7 @@ class RssController @Inject() (blogService: BlogService) extends AbstractControl
     val rssXml = <rss version="2.0">
                    { channelXml }
                  </rss>
-    val printer = new scala.xml.PrettyPrinter(80, 2)
+    val printer = new PrettyPrinter(80, 2)
     """<?xml version="1.0" encoding="UTF-8" ?>""" + "\n" + printer.format(rssXml)
   }
 

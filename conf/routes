@@ -25,6 +25,9 @@ GET     /impressum/                           @controllers.StaticPageController.
 GET     /datenschutz/                         @controllers.StaticPageController.showDatenschutzPage
 GET     /admin/                               @controllers.AdminController.adminPage
 
+# Sitemap
+GET     /sitemap.xml                          @controllers.SiteMapController.showSiteMap
+
 # RSS
 GET     /blog/rss.xml                         @controllers.RssController.showRss
 # RSS (legacy)
