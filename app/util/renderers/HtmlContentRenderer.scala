@@ -4,6 +4,6 @@ object HtmlContentRenderer extends ContentRenderer {
 
   override val renderFormat = "html"
 
-  override def render(source: String) = ContentWithAbstract(source, source)
+  override def render(source: String)(implicit context: RenderContext) = ContentWithAbstract(source, source)
 
 }

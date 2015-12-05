@@ -19,6 +19,8 @@ import slick.driver.MySQLDriver.api._
 import util.Logging
 import util.renderers.{ ContentRenderers, ContentWithAbstract, MarkdownContentRenderer }
 import org.apache.commons.io.FilenameUtils
+import util.renderers.RenderContext
+import util.renderers.RenderTypeBlog
 
 /**
  * Admin tasks.
@@ -85,7 +87,9 @@ object AdminTasks extends Logging {
         blogs.foreach {
           blog =>
             log.info(s"Render Blog ${blog.id}")
-            ContentRenderers.render(blog.content, blog.contentFormat) match {
+            val attachmentsFolder = Option(new File(s"media/blog/${blog.id}")) filter {_.isDirectory}
+            implicit val context = RenderContext(RenderTypeBlog, blog.contentFormat, attachmentsFolder)
+            ContentRenderers.render(blog.content) match {
               case None             => log.warn(s"Content Format ${blog.contentFormat} in blog entry ${blog.id} not defined.")
               case Some(Failure(e)) => log.error(s"Error during rendering of blog entry ${blog.id}", e)
               case Some(Success(ContentWithAbstract(abstr, content))) => {
@@ -198,7 +202,8 @@ object AdminTasks extends Logging {
         val tagIds = meta.tags.map { getOrCreateTag(_) }
         val url = mkUrl(meta.title)
 
-        val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content, mdFormat) match {
+        implicit val context = RenderContext(RenderTypeBlog, mdFormat, attachmentsFolder)
+        val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content) match {
           case None => {
             log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")
             ContentWithAbstract("error", "error")

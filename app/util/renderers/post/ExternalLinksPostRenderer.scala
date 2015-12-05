@@ -1,15 +1,15 @@
-package util.renderers
+package util.renderers.post
 
 import org.jsoup.Jsoup
-import scala.collection.convert.decorateAsScala._
 import scala.collection.convert.wrapAsScala._
-import util.Logging
+import util.renderers.ContentWithAbstract
+import util.renderers.RenderContext
 
-object ExternalLinksPostRenderer extends PostRenderer with Logging {
+object ExternalLinksPostRenderer extends PostRenderer {
 
-  override def include(renderFormat: String) = true
+  override def include(implicit context: RenderContext) = true
 
-  override def render(content: ContentWithAbstract) =
+  override def render(content: ContentWithAbstract)(implicit context: RenderContext) =
     ContentWithAbstract(replaceExternalLinks(content.abstractText), replaceExternalLinks(content.content))
 
   def replaceExternalLinks(content: String): String = {

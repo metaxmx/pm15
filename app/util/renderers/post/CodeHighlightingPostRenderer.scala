@@ -1,16 +1,16 @@
-package util.renderers
+package util.renderers.post
 
 import org.jsoup.Jsoup
-import scala.collection.convert.decorateAsScala._
 import scala.collection.convert.wrapAsScala._
-import util.Logging
 import org.python.util.PythonInterpreter
+import util.renderers.ContentWithAbstract
+import util.renderers.RenderContext
 
-object CodeHighlightingPostRenderer extends PostRenderer with Logging {
+object CodeHighlightingPostRenderer extends PostRenderer {
 
-  override def include(renderFormat: String) = true
+  override def include(implicit context: RenderContext) = true
 
-  override def render(content: ContentWithAbstract) =
+  override def render(content: ContentWithAbstract)(implicit context: RenderContext) =
     ContentWithAbstract(replaceCodes(content.abstractText), replaceCodes(content.content))
 
   def replaceCodes(content: String): String = {
@@ -19,7 +19,6 @@ object CodeHighlightingPostRenderer extends PostRenderer with Logging {
       code =>
         val data = code.text
         val language = code.className
-        log.info(s"Found code with format $language")
         val highlighted = Jsoup parseBodyFragment highlightWithPygments(data, language)
         if (highlighted.body.children.size == 1 && highlighted.body.child(0).children.size == 1) {
           // Pygments renders highlighted in inside <div class="highlight"><pre>, so its

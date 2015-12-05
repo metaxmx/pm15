@@ -11,7 +11,7 @@ object MarkdownContentRenderer extends ContentRenderer {
 
   def EXTENSIONS = Extensions.ALL_WITH_OPTIONALS ^ Extensions.ANCHORLINKS
 
-  override def render(source: String) = {
+  override def render(source: String)(implicit context: RenderContext) = {
     val processor = new PegDownProcessor(EXTENSIONS, MAX_PARSING_TIME)
     val (abstrSource, contentSource) = splitAbstract(source)
     val abstr = processor markdownToHtml abstrSource
