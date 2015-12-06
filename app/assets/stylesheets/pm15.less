@@ -194,6 +194,10 @@ footer {
 		padding: 16px;
 		.screen-size-container();
 		min-height: 500px;
+		
+		> h1 {
+			margin-top: 0;
+		}
 	}
 }
 
@@ -403,5 +407,31 @@ div.blog_toc {
 		padding: 4px;
 		color: #ffffff;
 		.border-radius(4px);
+	}
+	
+	@media(max-width: @screen-xs-max) {
+		float: none;
+		margin-left: 0;
+		margin-bottom: 24px;
+	}
+}
+
+div.read-more {
+	padding: 16px 0;
+}
+
+.btn {
+	&.btn-primary {
+		.vertical-gradient(#2e2e2e, #1f2c39);
+		.box-shadow(2px 2px 5px 0px, rgba(0,0,0,0.75));
+		color: #ffffff;
+		border-color: #ffffff;
+		
+		&:active {
+			position: relative;
+			left: 2px;
+			top: 2px;
+			.box-shadow(0px 0px 5px 0px, rgba(0,0,0,0.75));
+		}
 	}
 }

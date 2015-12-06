@@ -26,6 +26,7 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [x] RSS Feed
 * [x] Sitemap
 * [x] Table of Contents in Blog Entries
+* [x] "Read Complete Article" link on shortened abstracts
 
 ## TODO
 

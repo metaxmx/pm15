@@ -17,7 +17,8 @@ trait PostRenderer {
 object PostRenderers {
 
   val postRenderers: Seq[PostRenderer] =
-    CodeHighlightingPostRenderer ::
+    ReadAllPostRenderer ::
+      CodeHighlightingPostRenderer ::
       ExternalLinksPostRenderer ::
       AttachmentImageUrlPostRenderer ::
       TableOfContentsPostRenderer ::
