@@ -25,6 +25,7 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [x] SourceCode highlighting with [Pygments](http://pygments.org)
 * [x] RSS Feed
 * [x] Sitemap
+* [x] Table of Contents in Blog Entries
 
 ## TODO
 
@@ -32,7 +33,6 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [ ] Write Blog Entry
 * [ ] Edit/Delete Blog Entry
 * [ ] Attachment Uploads
-* [ ] Table of Contents in Blog Entries
 * [ ] Image Galery
 * [ ] Styles for additional Tokens: variable, Classname, Filename, Input
 * [ ] Better "Profile" page

@@ -20,6 +20,7 @@ object PostRenderers {
     CodeHighlightingPostRenderer ::
       ExternalLinksPostRenderer ::
       AttachmentImageUrlPostRenderer ::
+      TableOfContentsPostRenderer ::
       Nil
 
   def postRender(renderedContent: ContentWithAbstract)(implicit context: RenderContext): Try[ContentWithAbstract] = Try {
