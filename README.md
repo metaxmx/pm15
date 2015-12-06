@@ -30,11 +30,12 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 
 ## TODO
 
+* [ ] "Spoiler" Tag for collapsed large file contents
+* [ ] Image Galery
 * [ ] Admin Mode
 * [ ] Write Blog Entry
 * [ ] Edit/Delete Blog Entry
 * [ ] Attachment Uploads
-* [ ] Image Galery
 * [ ] Styles for additional Tokens: variable, Classname, Filename, Input
 * [ ] Better "Profile" page
 * [ ] Blog Search
