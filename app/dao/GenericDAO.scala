@@ -22,7 +22,7 @@ abstract class GenericDAO[A <: KeyedEntity with B#TableElementType, B <: Abstrac
   }
 
   def insert(entity: A) = db.run {
-    tableQuery += entity
+    (tableQuery returning tableQuery.map { _.id }) += entity
   }
 
 }

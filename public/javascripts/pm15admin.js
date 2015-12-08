@@ -19,6 +19,7 @@ function ajaxRequest(method, path, data, onsuccess) {
 	var request = {
 		'method': method,
 		'data': data,
+		'contentType': 'application/json; charset=UTF-8',
 		'dataType': 'json',
 		'error': onAjaxError,
 		'success': onsuccess
@@ -27,7 +28,7 @@ function ajaxRequest(method, path, data, onsuccess) {
 }
 
 function postRequest(path, data, onsuccess) {
-	ajaxRequest('POST', path, data, onsuccess);
+	ajaxRequest('POST', path, JSON.stringify(data), onsuccess);
 }
 
 function getRequest(path, onsuccess) {
@@ -39,20 +40,27 @@ function deleteRequest(path, onsuccess) {
 }
 
 function putRequest(path, data, onsuccess) {
-	ajaxRequest('PUT', path, data, onsuccess);
+	ajaxRequest('PUT', path, JSON.stringify(data), onsuccess);
 }
 
 /*
  * Business
  */
 
+var BlogModel = {
+		'entries': [],
+		'categories': [],
+		'tags': []
+}
+
 function loadBlogEntries() {
 	var blogListTable = $('#bloglistTable');
 	if (blogListTable.length) {
 		var tBody = blogListTable.find('tbody');
 		tBody.html('<tr><td colspan="3" class="row_loading">Wird geladen ...</td></tr>');
-		getRequest('/rest/admin/blog/', function onBlogListSuccess(data) {
+		getRequest('/rest/admin/blog/entries/', function onBlogListSuccess(data) {
 			tBody.html('');
+			BlogModel.entries = data.entries;
 			if (data.entries && data.entries.length) {
 				$.each(data.entries, function() {
 					var tr = $('<tr class="row_clickable"></tr>');
@@ -89,12 +97,67 @@ function loadBlogEntries() {
 	}
 }
 
-function createNewBlogEntry() {
-	alert("Create Blog Entry");
+function loadCategories() {
+	getRequest('/rest/admin/blog/categories/', function onCategoryListSuccess(data) {
+		BlogModel.categories = data.entries;
+		var catSelect = $('#createBlogCategory');
+		catSelect.find('option[value]').remove();
+		$.each(BlogModel.categories, function() {
+			var option = $('<option value=""></option>');
+			option.val(this.id);
+			option.text(this.title);
+			option.appendTo(catSelect);
+		});
+	});
 }
+
+function insertBlogEntry() {
+	var showInsertError = function showInsertError(msg) {
+		$('#createBlogMessage').html("Error: <span></span>");
+		$('#createBlogMessage').find('span').text(msg);
+		$('#createBlogMessage').removeClass('hidden');
+	}
+	var data = {
+			'title': $('#createBlogTitle').val(),
+			'url': $('#createBlogURL').val(),
+			'category': $('#createBlogCategory').val()
+	}
+	if (data.category) {
+		try {
+			var categoryId = parseInt(data.category);
+			data.category = categoryId;
+		} catch (e) {
+			showInsertError("Category must be a number");
+			return;
+		}
+	}
+	
+	if (!data.category) {
+		showInsertError("Please select a category.");
+		return;
+	}
+	if (!data.title) {
+		showInsertError("Please insert a title.");
+		return;
+	}
+	if (!data.url) {
+		showInsertError("Please insert an url.");
+		return;
+	}
+	$('#createBlogMessage').addClass('hidden');
+	postRequest('/rest/admin/blog/entries/', data, function onBlogInsertSuccess(data) {
+		if (data.success) {
+			$('#createBlogModal').modal('hide');
+			alert('Successfully inserted with id=' + data.id);
+		} else {
+			showInsertError(data.error);
+		}
+	});
+}
+
 
 $(function initializeBlog() {
 	loadBlogEntries();
-	
-	$('#addBlogButton').on('click', createNewBlogEntry);
+	loadCategories();
+	$('#createBlogButton').on('click', insertBlogEntry);
 });

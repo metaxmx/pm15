@@ -1,11 +1,10 @@
 package services
 
 import javax.inject.{ Inject, Singleton }
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 import dao._
 import viewmodels.BlogEntryData
+import models.BlogEntry
 
 @Singleton
 class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
@@ -36,5 +35,11 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
   def getAttachment(blogurl: String, url: String) = attachmentDAO.getByBlogUrlAndAttachmentUrl(blogurl, url)
 
   def getAttachmentRequired(blogurl: String, url: String) = require(getAttachment(blogurl, url))
+
+  def getAllCategories() = catDAO.getAll()
+
+  def getAllTags() = tagDAO.getAll()
+  
+  def insertBlogEntry(blog: BlogEntry) = blogEntryDAO.insert(blog)
 
 }

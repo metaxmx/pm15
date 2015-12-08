@@ -34,7 +34,10 @@ GET     /blog/rss.xml                         @controllers.RssController.showRss
 GET     /html/Weblog/RSS/                     @controllers.RssController.showRss
 
 # Admin REST
-GET     /rest/admin/blog/                     @controllers.AdminController.getRestBlogList
+GET     /rest/admin/blog/entries/             @controllers.AdminController.getRestBlogList
+GET     /rest/admin/blog/categories/          @controllers.AdminController.getRestCategoryList
+GET     /rest/admin/blog/tags/                @controllers.AdminController.getRestTagList
+POST    /rest/admin/blog/entries/             @controllers.AdminController.postRestAddEntry
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                         @controllers.Assets.at(path="/public", file)

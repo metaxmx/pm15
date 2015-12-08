@@ -2,11 +2,12 @@
 @template("Admin") {
 	@* Header *@
 	<script type="text/javascript" src="@routes.Assets.at("/public", "lib/jquery/jquery.min.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("/public", "lib/bootstrap/js/bootstrap.min.js")"></script>
 	<script type="text/javascript" src="@routes.Assets.at("/public", "javascripts/pm15admin.js")"></script>
 } {
 	<h1>Planet Metax Administration</h1>
 	<h2>
-		<a id="addBlogButton" class="btn btn-default">Neu</a>
+		<a id="addBlogButton" class="btn btn-primary" data-toggle="modal" data-target="#createBlogModal">Neu</a>
 		Blog Einträge
 	</h2>
 	
@@ -25,5 +26,45 @@
 				</tr>
 			</tbody>
 		</table>
+	</div>
+	
+	<div id="createBlogModal" class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Neuer Blogeintrag</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-horizontal">
+						<div id="createBlogMessage" class="alert alert-danger hidden"></div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label" for="createBlogTitle">Titel*</label>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" id="createBlogTitle" value="Unbenannt">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label" for="createBlogURL">URL*</label>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" id="createBlogURL" value="unbenannt">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label" for="createBlogCategory">Category*</label>
+							<div class="col-sm-10">
+								<select id="createBlogCategory" class="form-control">
+									<option>--- Bitte auswählen ---</option>
+								</select>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+					<button type="button" class="btn btn-primary" id="createBlogButton">Hinzufügen</button>
+				</div>
+			</div>
+		</div>
 	</div>
 }
