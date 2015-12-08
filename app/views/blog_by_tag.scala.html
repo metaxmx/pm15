@@ -1,7 +1,7 @@
 @* Blog By Tag Template File *@
 @import viewmodels.BlogEntryList
 @(tag: Tag)(blogEntryList: BlogEntryList)
-@template("Blog - Schlagwort " + tag.title) {
+@template("Blog - Schlagwort " + tag.title)(HtmlFormat.empty) {
 	<h1>Blog - Schlagwort @tag.title</h1>
 	@include_bloglist(blogEntryList)
 }

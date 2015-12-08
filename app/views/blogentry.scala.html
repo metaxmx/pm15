@@ -1,6 +1,6 @@
 @* Blog Entry Template File *@
 @import viewmodels.BlogEntryWithMeta
 @(entry: BlogEntryWithMeta)
-@template(entry.blogEntry.title) {
+@template(entry.blogEntry.title)(HtmlFormat.empty) {
 	@include_blogentry_long(entry)
 }

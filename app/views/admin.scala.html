@@ -1,11 +1,29 @@
 @* admin Template File *@
-@(blogEntries: Seq[BlogEntry])
 @template("Admin") {
+	@* Header *@
+	<script type="text/javascript" src="@routes.Assets.at("/public", "lib/jquery/jquery.min.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("/public", "javascripts/pm15admin.js")"></script>
+} {
 	<h1>Planet Metax Administration</h1>
-	<h2>Blog Einträge</h2>
-	<p><a href="@routes.AdminController.showNewBlogEntry">Blog Eintrag hinzufügen</a></p>
-	@for(blogEntry <- blogEntries) {
-		<p><a href="@routes.AdminController.showEditBlogEntry(blogEntry.id)">[@blogEntry.id] @{blogEntry.url}.html - @blogEntry.title</a></p>
-	}
+	<h2>
+		<a id="addBlogButton" class="btn btn-default">Neu</a>
+		Blog Einträge
+	</h2>
 	
+	<div id="adminBlogList">
+		<table id="bloglistTable">
+			<thead>
+				<tr>
+					<th class="col_title">Titel</th>
+					<th class="col_meta">Meta</th>
+					<th class="col_published">Veröffentlicht</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td colspan="3" class="row_loading">Wird geladen ...</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 }

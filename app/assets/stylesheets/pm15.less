@@ -435,3 +435,53 @@ div.read-more {
 		}
 	}
 }
+
+.data-table() {
+	width: 100%;
+	border: 1px solid #cccccc;
+	th {
+		.vertical-gradient(#2e2e2e, #1f2c39);
+		color: #ffffff;
+		padding: 4px;
+	}
+	td {
+		.vertical-gradient(#ffffff, #eeeeee);
+		color: #333333;
+		padding: 4px;
+		border-top: 1px solid #cccccc;
+	}
+	
+	tr.row_clickable {
+		cursor: pointer;
+		&:hover {
+			td {
+				.vertical-gradient(#ffffff, #dddddd);
+				color: #000000;
+			}
+		}
+	}
+}
+
+#adminBlogList {
+	table#bloglistTable {
+		.data-table();
+		table-layout: fixed;
+		.row_loading {
+			font-style: italic;
+		}
+		.col_title {
+			width: 60%;
+		}
+		.col_meta {
+			width: 40%
+		}
+		.col_published {
+			width: 140px;
+		}
+	}
+}
+
+#addBlogButton {
+	float: right;
+}
+

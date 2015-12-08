@@ -33,11 +33,8 @@ GET     /blog/rss.xml                         @controllers.RssController.showRss
 # RSS (legacy)
 GET     /html/Weblog/RSS/                     @controllers.RssController.showRss
 
-# Admin
-GET     /admin/blog/new.html                  @controllers.AdminController.showNewBlogEntry
-POST    /admin/blog/new.html                  @controllers.AdminController.saveNewBlogEntry
-GET     /admin/blog/:id.html                  @controllers.AdminController.showEditBlogEntry(id: Int)
-POST    /admin/blog/:id.html                  @controllers.AdminController.saveEditBlogEntry(id: Int)
+# Admin REST
+GET     /rest/admin/blog/                     @controllers.AdminController.getRestBlogList
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                         @controllers.Assets.at(path="/public", file)

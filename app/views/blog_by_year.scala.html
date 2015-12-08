@@ -2,7 +2,7 @@
 @import viewmodels.BlogEntryList
 @import org.joda.time.YearMonth
 @(date: YearMonth)(blogEntryList: BlogEntryList)
-@template("Blog Archiv - Jahr " + date.getYear) {
+@template("Blog Archiv - Jahr " + date.getYear)(HtmlFormat.empty) {
 	<h1>Blog Archiv - Jahr @date.getYear</h1>
 	@include_bloglist(blogEntryList)
 }

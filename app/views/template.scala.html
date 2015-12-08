@@ -1,5 +1,5 @@
 @* template Template File *@
-@(title: String = "")(content: Html)
+@(title: String = "")(header: Html)(content: Html)
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,6 +17,7 @@
 		<script type="text/javascript" src="@routes.Assets.at("/public", "lib/html5shiv/html5shiv.min.js")"></script>
 		<script type="text/javascript" src="@routes.Assets.at("/public", "lib/respond/dest/respond.min.js")"></script>
 	<![endif]-->
+	@header
 </head>
 <body>
 <header>

@@ -9,8 +9,10 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
-
-case class StaticPageData(title: String, url: String, content: String)
+import play.api.libs.json.Json
+import org.joda.time.format.DateTimeFormat
+import play.api.http.ContentTypes.JSON
+import models.BlogEntry
 
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
@@ -19,26 +21,37 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
    * Overview
    */
 
-  def adminPage = AdminAction.async {
-    for {
-      blogEntries <- blogService.getAll()
-    } yield Ok(views.html.admin(blogEntries))
+  def adminPage = AdminAction {
+    Ok(views.html.admin())
   }
 
-  def showEditBlogEntry(id: Int) = AdminAction.async {
-    Future successful Ok(views.html.error_notfound("dummy"))
-  }
+  /*
+   * REST Operations
+   */
 
-  def saveEditBlogEntry(id: Int) = AdminAction.async {
-    Future successful Ok(views.html.error_notfound("dummy"))
-  }
+  val fullDateTimeFormat = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm")
 
-  def showNewBlogEntry() = AdminAction.async {
-    Future successful Ok(views.html.error_notfound("dummy"))
-  }
+  case class BlogList(entries: Seq[BlogListEntry])
 
-  def saveNewBlogEntry() = AdminAction.async {
-    Future successful Ok(views.html.error_notfound("dummy"))
+  case class BlogListEntry(id: Int, title: String, url: String, published: Boolean, publishedDate: Option[String],
+                           category: String, tags: Seq[String], views: Int)
+
+  implicit val formatBlogListEntry = Json.format[BlogListEntry]
+
+  implicit val formatBlogList = Json.format[BlogList]
+
+  def getRestBlogList = AdminAction.async {
+    blogService.getListWithMeta() map {
+      blogEntryData =>
+        val blogEntries = blogEntryData.blogEntries map {
+          blogEntryWithMeta =>
+            val blog = blogEntryWithMeta.blogEntry
+            BlogListEntry(blog.id, blog.title, blog.url, blog.published, blog.publishedDate map (fullDateTimeFormat print _),
+              blogEntryWithMeta.category.title, blogEntryWithMeta.tags.map { _.title }, blog.views)
+        }
+        val blogList = BlogList(blogEntries)
+        Ok(Json.toJson(blogList)).as(JSON)
+    }
   }
 
 }
