@@ -24,6 +24,7 @@ GET     /profil/                              @controllers.StaticPageController.
 GET     /impressum/                           @controllers.StaticPageController.showImpressumPage
 GET     /datenschutz/                         @controllers.StaticPageController.showDatenschutzPage
 GET     /admin/                               @controllers.AdminController.adminPage
+GET     /admin/editblog/:id/                  @controllers.AdminController.editBlogEntryPage(id: Int)
 
 # Sitemap
 GET     /sitemap.xml                          @controllers.SiteMapController.showSiteMap
@@ -40,6 +41,7 @@ GET     /rest/admin/blog/tags/                @controllers.AdminController.getRe
 POST    /rest/admin/blog/entries/             @controllers.AdminController.postRestAddEntry
 POST    /rest/admin/blog/categories/          @controllers.AdminController.postRestAddCategory
 POST    /rest/admin/blog/tags/                @controllers.AdminController.postRestAddTag
+GET     /rest/admin/blog/entry/:id/           @controllers.AdminController.getRestBlogEntry(id: Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                         @controllers.Assets.at(path="/public", file)

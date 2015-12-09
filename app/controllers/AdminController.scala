@@ -22,11 +22,15 @@ import models.Tag
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
 
   /*
-   * Overview
+   * Pages
    */
 
   def adminPage = AdminAction {
     Ok(views.html.admin())
+  }
+
+  def editBlogEntryPage(id: Int) = AdminAction {
+    Ok(views.html.edit_blog(id))
   }
 
   /*
@@ -57,6 +61,14 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
 
   implicit val formatInsertError = Json.format[InsertError]
 
+  implicit val formatBlogEntryNotFOund = Json.format[BlogEntryNotFound]
+
+  implicit val formatBlogEntryDataCategory = Json.format[BlogEntryDataCategory]
+
+  implicit val formatBlogEntryDataTag = Json.format[BlogEntryDataTag]
+
+  implicit val formatBlogEntryData = Json.format[BlogEntryData]
+
   def getRestBlogList = AdminAction.async {
     blogService.getListWithMeta() map {
       blogEntryData =>
@@ -86,6 +98,20 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
         // TODO: Fetch number of blog entries
         val tagList = TagList(tags map (tag => TagListEntry(tag.id, tag.title, tag.url, 0)))
         Ok(Json.toJson(tagList)).as(JSON)
+    }
+  }
+
+  def getRestBlogEntry(id: Int) = AdminAction.async {
+    blogService.getByIdWithMeta(id) map {
+      case None => Ok(Json.toJson(BlogEntryNotFound(false))).as(JSON)
+      case Some(blog) => {
+        val blogData = BlogEntryData(true, blog.blogEntry.title, blog.blogEntry.url, blog.blogEntry.content,
+          blog.blogEntry.abstractRendered, blog.blogEntry.contentRendered, blog.blogEntry.contentFormat, blog.blogEntry.published,
+          blog.blogEntry.publishedDate map (fullDateTimeFormat print _),
+          BlogEntryDataCategory(blog.category.id, blog.category.title, blog.category.url),
+          blog.tags.map { tag => BlogEntryDataTag(tag.id, tag.title, tag.url) }, blog.blogEntry.views)
+        Ok(Json.toJson(blogData)).as(JSON)
+      }
     }
   }
 
@@ -157,5 +183,15 @@ object AdminController {
   case class InsertSuccess(success: Boolean, id: Int)
 
   case class InsertError(success: Boolean, error: String)
+
+  case class BlogEntryNotFound(success: Boolean)
+
+  case class BlogEntryDataCategory(id: Int, title: String, url: String)
+
+  case class BlogEntryDataTag(id: Int, title: String, url: String)
+
+  case class BlogEntryData(success: Boolean, title: String, url: String, content: String, abstractRendered: String, contentRendered: String,
+                           contentFormat: String, published: Boolean, publishedDate: Option[String], category: BlogEntryDataCategory,
+                           tags: Seq[BlogEntryDataTag], views: Int)
 
 }

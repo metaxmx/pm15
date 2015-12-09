@@ -32,7 +32,7 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "slick-joda-mapper"     % "2.0.0"           withSources() withJavadoc,
   "com.typesafe.play"    %% "play-slick"            % "1.1.1"           withSources() withJavadoc,
   "com.typesafe.play"    %% "play-slick-evolutions" % "1.1.1"           withSources() withJavadoc,
-  "mysql"                %  "mysql-connector-java"  % "latest.release"                           ,
+  "mysql"                %  "mysql-connector-java"  % "5.1.38"                                   ,
   "commons-io"           %  "commons-io"            % "2.4"             withSources() withJavadoc,
   "org.jsoup"            %  "jsoup"                 % "1.8.3"           withSources() withJavadoc,
   "org.pegdown"          %  "pegdown"               % "1.6.0"           withSources() withJavadoc,
@@ -42,6 +42,7 @@ libraryDependencies ++= Seq(
   "org.webjars"          %  "jquery"                % "1.11.3"                                   ,
   "org.webjars"          %  "html5shiv"             % "3.7.2"                                    ,
   "org.webjars"          %  "respond"               % "1.4.2"                                    ,
+  "org.webjars"          %  "ace"                   % "1.2.2"                                    ,
   specs2                                                        % Test  withSources() withJavadoc,
   "org.mockito"          %  "mockito-core"          % "1.10.17" % Test  withSources() withJavadoc
 )

@@ -1,0 +1,17 @@
+@* admin Template File *@
+@(id: Int)
+@template("Blog Bearbeiten") {
+	@* Header *@
+	<script type="text/javascript" src="@routes.Assets.at("/public", "lib/jquery/jquery.min.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("/public", "lib/bootstrap/js/bootstrap.min.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("/public", "lib/ace/src-noconflict/ace.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("/public", "javascripts/pm15admin.js")"></script>
+} {
+	<h1 id="adminEditBlog" data-id="@id">Blog Eintrag bearbeiten: <span id="blogEntryTitle"></span></h1>
+	
+	<h2>Meta</h2>
+	
+	<h2>Inhalt</h2>
+	<div id="blogContentEditor">Loading ...</div>
+	
+}
