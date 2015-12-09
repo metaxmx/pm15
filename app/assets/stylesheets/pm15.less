@@ -462,26 +462,60 @@ div.read-more {
 	}
 }
 
-#adminBlogList {
-	table#bloglistTable {
-		.data-table();
-		table-layout: fixed;
-		.row_loading {
-			font-style: italic;
-		}
-		.col_title {
-			width: 60%;
-		}
-		.col_meta {
-			width: 40%
-		}
-		.col_published {
-			width: 140px;
-		}
+#adminBlogList table {
+	.data-table();
+	table-layout: fixed;
+	.row_loading {
+		font-style: italic;
+	}
+	.col_title {
+		width: 60%;
+	}
+	.col_meta {
+		width: 40%
+	}
+	.col_published {
+		width: 140px;
 	}
 }
 
-#addBlogButton {
+#adminCategoryList table {
+	.data-table();
+	table-layout: fixed;
+	.row_loading {
+		font-style: italic;
+	}
+	.col_title {
+		width: 50%;
+	}
+	.col_url {
+		width: 50%
+	}
+	.col_entries {
+		width: 120px;
+	}
+}
+
+#adminTagList table {
+	.data-table();
+	table-layout: fixed;
+	.row_loading {
+		font-style: italic;
+	}
+	.col_title {
+		width: 50%;
+	}
+	.col_url {
+		width: 50%
+	}
+	.col_entries {
+		width: 120px;
+	}
+}
+
+#addBlogButton,
+#addCategoryButton,
+#addTagButton {
 	float: right;
 }
 

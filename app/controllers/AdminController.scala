@@ -68,7 +68,8 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
   def getRestCategoryList = AdminAction.async {
     blogService.getAllCategories() map {
       categories =>
-        val categoryList = CategoryList(categories map (cat => CategoryListEntry(cat.id, cat.title, cat.url)))
+        // TODO: Fetch number of blog entries
+        val categoryList = CategoryList(categories map (cat => CategoryListEntry(cat.id, cat.title, cat.url, 0)))
         Ok(Json.toJson(categoryList)).as(JSON)
     }
   }
@@ -76,7 +77,8 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
   def getRestTagList = AdminAction.async {
     blogService.getAllTags() map {
       tags =>
-        val tagList = TagList(tags map (tag => TagListEntry(tag.id, tag.title, tag.url)))
+        // TODO: Fetch number of blog entries
+        val tagList = TagList(tags map (tag => TagListEntry(tag.id, tag.title, tag.url, 0)))
         Ok(Json.toJson(tagList)).as(JSON)
     }
   }
@@ -108,11 +110,11 @@ object AdminController {
 
   case class CategoryList(entries: Seq[CategoryListEntry])
 
-  case class CategoryListEntry(id: Int, title: String, url: String)
+  case class CategoryListEntry(id: Int, title: String, url: String, blogEntries: Int)
 
   case class TagList(entries: Seq[TagListEntry])
 
-  case class TagListEntry(id: Int, title: String, url: String)
+  case class TagListEntry(id: Int, title: String, url: String, blogEntries: Int)
 
   case class InsertEntryData(title: String, url: String, category: Int)
 

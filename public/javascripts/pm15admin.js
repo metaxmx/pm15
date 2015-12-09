@@ -55,59 +55,115 @@ var BlogModel = {
 
 function loadBlogEntries() {
 	var blogListTable = $('#bloglistTable');
-	if (blogListTable.length) {
-		var tBody = blogListTable.find('tbody');
-		tBody.html('<tr><td colspan="3" class="row_loading">Wird geladen ...</td></tr>');
-		getRequest('/rest/admin/blog/entries/', function onBlogListSuccess(data) {
-			tBody.html('');
-			BlogModel.entries = data.entries;
-			if (data.entries && data.entries.length) {
-				$.each(data.entries, function() {
-					var tr = $('<tr class="row_clickable"></tr>');
-					tr.appendTo(tBody);
-					var titleCol = $('<td><strong class="title"></strong><div class="url">URL: <code></code></div></td>');
-					titleCol.find('.title').text(this.title);
-					titleCol.find('.url code').text(this.url);
-					titleCol.appendTo(tr);
-					var metaCol = $('<td><div class="category"><strong>Kategorie:</strong> <span></span></div><div class="tags"><strong>Tags:</strong> <span></span></div></td>');
-					metaCol.find('.category span').text(this.category);
-					if (this.tags.length) {
-						var tags = this.tags.join(', ');
-						metaCol.find('.tags span').text(tags);
-					} else {
-						metaCol.find('.tags').text('');
-					}
-					metaCol.appendTo(tr);
-					var publishedCol = $('<td></td>');
-					if (this.published && this.publishedDate) {
-						publishedCol.html('<strong>Veröffentlicht</strong><br>' + this.publishedDate);
-					} else {
-						publishedCol.html('<strong>Unveröffentlicht</strong>');
-					}
-					publishedCol.appendTo(tr);
-					tr.on('click', (function blogEntryClick(id, event) {
-						console.log(id);
-						alert("Edit " + id);
-					}).bind(this, this.id));
-				});
-			} else {
-				tBody.html('<tr><td colspan="3">Keine Einträge vorhanden</td></tr>');
-			}
-		});
-	}
+	var tBody = blogListTable.find('tbody');
+	tBody.html('<tr><td colspan="3" class="row_loading">Wird geladen ...</td></tr>');
+	getRequest('/rest/admin/blog/entries/', function onBlogListSuccess(data) {
+		tBody.html('');
+		BlogModel.entries = data.entries;
+		$('#numBlogEntries').text(BlogModel.entries.length);
+		if (data.entries && data.entries.length) {
+			$.each(data.entries, function() {
+				var tr = $('<tr class="row_clickable"></tr>');
+				tr.appendTo(tBody);
+				var titleCol = $('<td><strong class="title"></strong><div class="url">URL: <code></code></div></td>');
+				titleCol.find('.title').text(this.title);
+				titleCol.find('.url code').text(this.url);
+				titleCol.appendTo(tr);
+				var metaCol = $('<td><div class="category"><strong>Kategorie:</strong> <span></span></div><div class="tags"><strong>Tags:</strong> <span></span></div></td>');
+				metaCol.find('.category span').text(this.category);
+				if (this.tags.length) {
+					var tags = this.tags.join(', ');
+					metaCol.find('.tags span').text(tags);
+				} else {
+					metaCol.find('.tags').text('');
+				}
+				metaCol.appendTo(tr);
+				var publishedCol = $('<td></td>');
+				if (this.published && this.publishedDate) {
+					publishedCol.html('<strong>Veröffentlicht</strong><br>' + this.publishedDate);
+				} else {
+					publishedCol.html('<strong>Unveröffentlicht</strong>');
+				}
+				publishedCol.appendTo(tr);
+				tr.on('click', (function blogEntryClick(id, event) {
+					console.log(id);
+					alert("Edit " + id);
+				}).bind(this, this.id));
+			});
+		} else {
+			tBody.html('<tr><td colspan="3">Keine Einträge vorhanden</td></tr>');
+		}
+	});
 }
 
 function loadCategories() {
+	var catListTable = $('#catlistTable');
+	var tBody = catListTable.find('tbody');
+	tBody.html('<tr><td colspan="3" class="row_loading">Wird geladen ...</td></tr>');
 	getRequest('/rest/admin/blog/categories/', function onCategoryListSuccess(data) {
+		tBody.html('');
 		BlogModel.categories = data.entries;
+		$('#numCats').text(BlogModel.categories.length);
 		var catSelect = $('#createBlogCategory');
 		catSelect.find('option[value]').remove();
-		$.each(BlogModel.categories, function() {
-			var option = $('<option value=""></option>');
-			option.val(this.id);
-			option.text(this.title);
-			option.appendTo(catSelect);
-		});
+		if (BlogModel.categories && BlogModel.categories.length) {
+			$.each(BlogModel.categories, function() {
+				var option = $('<option value=""></option>');
+				option.val(this.id);
+				option.text(this.title);
+				option.appendTo(catSelect);
+				
+				var tr = $('<tr class="row_clickable"></tr>');
+				tr.appendTo(tBody);
+				var titleCol = $('<td><strong class="title"></strong></td>');
+				titleCol.find('.title').text(this.title);
+				titleCol.appendTo(tr);
+				var urlCol = $('<td><code class="url"></code></td>');
+				urlCol.find('.url').text(this.url);
+				urlCol.appendTo(tr);
+				var entriesCol = $('<td></td>');
+				entriesCol.text(this.blogEntries);
+				entriesCol.appendTo(tr);
+				tr.on('click', (function categoryClick(id, event) {
+					console.log(id);
+					alert("Edit Category " + id);
+				}).bind(this, this.id));
+			});
+		} else {
+			tBody.html('<tr><td colspan="3">Keine Einträge vorhanden</td></tr>');
+		}
+	});
+}
+
+function loadTags() {
+	var tagListTable = $('#taglistTable');
+	var tBody = tagListTable.find('tbody');
+	tBody.html('<tr><td colspan="3" class="row_loading">Wird geladen ...</td></tr>');
+	getRequest('/rest/admin/blog/tags/', function onTagListSuccess(data) {
+		tBody.html('');
+		BlogModel.tags = data.entries;
+		$('#numTags').text(BlogModel.tags.length);
+		if (BlogModel.tags && BlogModel.tags.length) {
+			$.each(BlogModel.tags, function() {
+				var tr = $('<tr class="row_clickable"></tr>');
+				tr.appendTo(tBody);
+				var titleCol = $('<td><strong class="title"></strong></td>');
+				titleCol.find('.title').text(this.title);
+				titleCol.appendTo(tr);
+				var urlCol = $('<td><code class="url"></code></td>');
+				urlCol.find('.url').text(this.url);
+				urlCol.appendTo(tr);
+				var entriesCol = $('<td></td>');
+				entriesCol.text(this.blogEntries);
+				entriesCol.appendTo(tr);
+				tr.on('click', (function categoryClick(id, event) {
+					console.log(id);
+					alert("Edit Tag " + id);
+				}).bind(this, this.id));
+			});
+		} else {
+			tBody.html('<tr><td colspan="3">Keine Einträge vorhanden</td></tr>');
+		}
 	});
 }
 
@@ -127,27 +183,28 @@ function insertBlogEntry() {
 			var categoryId = parseInt(data.category);
 			data.category = categoryId;
 		} catch (e) {
-			showInsertError("Category must be a number");
+			showInsertError("Kategorie muss eine Zahl sein");
 			return;
 		}
 	}
 	
 	if (!data.category) {
-		showInsertError("Please select a category.");
+		showInsertError("Bitte eine Kategorie auswählen.");
 		return;
 	}
 	if (!data.title) {
-		showInsertError("Please insert a title.");
+		showInsertError("Bitten einen Titel eingeben.");
 		return;
 	}
 	if (!data.url) {
-		showInsertError("Please insert an url.");
+		showInsertError("Bitte eine URL eingeben.");
 		return;
 	}
 	$('#createBlogMessage').addClass('hidden');
 	postRequest('/rest/admin/blog/entries/', data, function onBlogInsertSuccess(data) {
 		if (data.success) {
 			$('#createBlogModal').modal('hide');
+			loadBlogEntries();
 			alert('Successfully inserted with id=' + data.id);
 		} else {
 			showInsertError(data.error);
@@ -159,5 +216,6 @@ function insertBlogEntry() {
 $(function initializeBlog() {
 	loadBlogEntries();
 	loadCategories();
+	loadTags();
 	$('#createBlogButton').on('click', insertBlogEntry);
 });

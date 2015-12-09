@@ -6,26 +6,83 @@
 	<script type="text/javascript" src="@routes.Assets.at("/public", "javascripts/pm15admin.js")"></script>
 } {
 	<h1>Planet Metax Administration</h1>
-	<h2>
-		<a id="addBlogButton" class="btn btn-primary" data-toggle="modal" data-target="#createBlogModal">Neu</a>
-		Blog Einträge
-	</h2>
 	
-	<div id="adminBlogList">
-		<table id="bloglistTable">
-			<thead>
-				<tr>
-					<th class="col_title">Titel</th>
-					<th class="col_meta">Meta</th>
-					<th class="col_published">Veröffentlicht</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td colspan="3" class="row_loading">Wird geladen ...</td>
-				</tr>
-			</tbody>
-		</table>
+	<ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" class="active"><a href="#sectionBlogEntries" role="tab" data-toggle="tab">Blog Einträge <span id="numBlogEntries" class="badge">0</span></a></li>
+		<li role="presentation"><a href="#sectionCategories" role="tab" data-toggle="tab">Kategorien <span id="numCats" class="badge">0</span></a></li>
+		<li role="presentation"><a href="#sectionTags" role="tab" data-toggle="tab">Tags <span id="numTags" class="badge">0</span></a></li>
+	</ul>
+	
+	<div class="tab-content">
+		<section id="sectionBlogEntries" role="tabpanel" class="tab-pane active">
+			<h2>
+				<a id="addBlogButton" class="btn btn-primary" data-toggle="modal" data-target="#createBlogModal">Neu</a>
+				Blog Einträge
+			</h2>
+			
+			<div id="adminBlogList">
+				<table id="bloglistTable">
+					<thead>
+						<tr>
+							<th class="col_title">Titel</th>
+							<th class="col_meta">Meta</th>
+							<th class="col_published">Veröffentlicht</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td colspan="3" class="row_loading">Wird geladen ...</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+		<section id="sectionCategories" role="tabpanel" class="tab-pane">
+			<h2>
+				<a id="addCategoryButton" class="btn btn-primary" data-toggle="modal" data-target="#createCategoryModal">Neu</a>
+				Kategorien
+			</h2>
+			
+			<div id="adminCategoryList">
+				<table id="catlistTable">
+					<thead>
+						<tr>
+							<th class="col_title">Titel</th>
+							<th class="col_url">URL</th>
+							<th class="col_entries">Blog Einträge</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td colspan="3" class="row_loading">Wird geladen ...</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+		<section id="sectionTags" role="tabpanel" class="tab-pane">
+			<h2>
+				<a id="addTagButton" class="btn btn-primary" data-toggle="modal" data-target="#createTagModal">Neu</a>
+				Kategorien
+			</h2>
+			
+			<div id="adminTagList">
+				<table id="taglistTable">
+					<thead>
+						<tr>
+							<th class="col_title">Titel</th>
+							<th class="col_url">URL</th>
+							<th class="col_entries">Blog Einträge</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td colspan="3" class="row_loading">Wird geladen ...</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
 	</div>
 	
 	<div id="createBlogModal" class="modal fade" tabindex="-1" role="dialog">
@@ -51,7 +108,7 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="col-sm-2 control-label" for="createBlogCategory">Category*</label>
+							<label class="col-sm-2 control-label" for="createBlogCategory">Kategorie*</label>
 							<div class="col-sm-10">
 								<select id="createBlogCategory" class="form-control">
 									<option>--- Bitte auswählen ---</option>
