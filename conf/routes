@@ -38,6 +38,8 @@ GET     /rest/admin/blog/entries/             @controllers.AdminController.getRe
 GET     /rest/admin/blog/categories/          @controllers.AdminController.getRestCategoryList
 GET     /rest/admin/blog/tags/                @controllers.AdminController.getRestTagList
 POST    /rest/admin/blog/entries/             @controllers.AdminController.postRestAddEntry
+POST    /rest/admin/blog/categories/          @controllers.AdminController.postRestAddCategory
+POST    /rest/admin/blog/tags/                @controllers.AdminController.postRestAddTag
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                         @controllers.Assets.at(path="/public", file)

@@ -5,6 +5,8 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import dao._
 import viewmodels.BlogEntryData
 import models.BlogEntry
+import models.Category
+import models.Tag
 
 @Singleton
 class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
@@ -39,7 +41,11 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
   def getAllCategories() = catDAO.getAll()
 
   def getAllTags() = tagDAO.getAll()
-  
+
   def insertBlogEntry(blog: BlogEntry) = blogEntryDAO.insert(blog)
+
+  def insertCategory(category: Category) = catDAO.insert(category)
+
+  def insertTag(tag: Tag) = tagDAO.insert(tag)
 
 }

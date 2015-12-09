@@ -212,10 +212,72 @@ function insertBlogEntry() {
 	});
 }
 
+function insertCategory() {
+	var showInsertError = function showInsertError(msg) {
+		$('#createCategoryMessage').html("Error: <span></span>");
+		$('#createCategoryMessage').find('span').text(msg);
+		$('#createCategoryMessage').removeClass('hidden');
+	}
+	var data = {
+			'title': $('#createCategoryTitle').val(),
+			'url': $('#createCategoryURL').val()
+	}
+	if (!data.title) {
+		showInsertError("Bitten einen Titel eingeben.");
+		return;
+	}
+	if (!data.url) {
+		showInsertError("Bitte eine URL eingeben.");
+		return;
+	}
+	$('#createCategoryMessage').addClass('hidden');
+	postRequest('/rest/admin/blog/categories/', data, function onCategoryInsertSuccess(data) {
+		if (data.success) {
+			$('#createCategoryModal').modal('hide');
+			loadCategories();
+			alert('Successfully inserted with id=' + data.id);
+		} else {
+			showInsertError(data.error);
+		}
+	});
+}
 
-$(function initializeBlog() {
+function insertTag() {
+	var showInsertError = function showInsertError(msg) {
+		$('#createTagMessage').html("Error: <span></span>");
+		$('#createTagMessage').find('span').text(msg);
+		$('#createTagMessage').removeClass('hidden');
+	}
+	var data = {
+			'title': $('#createTagTitle').val(),
+			'url': $('#createTagURL').val()
+	}
+	if (!data.title) {
+		showInsertError("Bitten einen Titel eingeben.");
+		return;
+	}
+	if (!data.url) {
+		showInsertError("Bitte eine URL eingeben.");
+		return;
+	}
+	$('#createTagMessage').addClass('hidden');
+	postRequest('/rest/admin/blog/tags/', data, function onTagInsertSuccess(data) {
+		if (data.success) {
+			$('#createTagModal').modal('hide');
+			loadTags();
+			alert('Successfully inserted with id=' + data.id);
+		} else {
+			showInsertError(data.error);
+		}
+	});
+}
+
+
+$(function initializeData() {
 	loadBlogEntries();
 	loadCategories();
 	loadTags();
 	$('#createBlogButton').on('click', insertBlogEntry);
+	$('#createCategoryButton').on('click', insertCategory);
+	$('#createTagButton').on('click', insertTag);
 });

@@ -15,6 +15,8 @@ import play.api.http.ContentTypes.JSON
 import models.BlogEntry
 import models.BlogEntry
 import util.renderers.MarkdownContentRenderer
+import models.Category
+import models.Tag
 
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
@@ -45,11 +47,15 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
 
   implicit val formatTagList = Json.format[TagList]
 
-  implicit val formatInsertEntryData = Json.format[InsertEntryData]
+  implicit val formatInsertBlogEntryData = Json.format[InsertBlogEntryData]
 
-  implicit val formatInsertEntrySuccess = Json.format[InsertEntrySuccess]
+  implicit val formatInsertCategoryData = Json.format[InsertCategoryData]
 
-  implicit val formatInsertEntryError = Json.format[InsertEntryError]
+  implicit val formatInsertTagData = Json.format[InsertTagData]
+
+  implicit val formatInserSuccess = Json.format[InsertSuccess]
+
+  implicit val formatInsertError = Json.format[InsertError]
 
   def getRestBlogList = AdminAction.async {
     blogService.getListWithMeta() map {
@@ -83,17 +89,43 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
     }
   }
 
-  def postRestAddEntry = AdminAction.async(parse.json[InsertEntryData]) {
+  def postRestAddEntry = AdminAction.async(parse.json[InsertBlogEntryData]) {
     request =>
       val insertEntryData = request.body
       val blogEntry = BlogEntry(0, insertEntryData.category, insertEntryData.url, insertEntryData.title, "", "", "",
         MarkdownContentRenderer.renderFormat, false, None, 0)
       blogService.insertBlogEntry(blogEntry) map {
         id =>
-          Ok(Json.toJson(InsertEntrySuccess(true, id))).as(JSON)
+          Ok(Json.toJson(InsertSuccess(true, id))).as(JSON)
       } recover {
         case exc: Exception =>
-          Ok(Json.toJson(InsertEntryError(false, exc.getMessage))).as(JSON)
+          Ok(Json.toJson(InsertError(false, exc.getMessage))).as(JSON)
+      }
+  }
+
+  def postRestAddCategory = AdminAction.async(parse.json[InsertCategoryData]) {
+    request =>
+      val insertCategoryData = request.body
+      val category = Category(0, insertCategoryData.url, insertCategoryData.title)
+      blogService.insertCategory(category) map {
+        id =>
+          Ok(Json.toJson(InsertSuccess(true, id))).as(JSON)
+      } recover {
+        case exc: Exception =>
+          Ok(Json.toJson(InsertError(false, exc.getMessage))).as(JSON)
+      }
+  }
+
+  def postRestAddTag = AdminAction.async(parse.json[InsertTagData]) {
+    request =>
+      val insertTagData = request.body
+      val tag = Tag(0, insertTagData.url, insertTagData.title)
+      blogService.insertTag(tag) map {
+        id =>
+          Ok(Json.toJson(InsertSuccess(true, id))).as(JSON)
+      } recover {
+        case exc: Exception =>
+          Ok(Json.toJson(InsertError(false, exc.getMessage))).as(JSON)
       }
   }
 
@@ -116,10 +148,14 @@ object AdminController {
 
   case class TagListEntry(id: Int, title: String, url: String, blogEntries: Int)
 
-  case class InsertEntryData(title: String, url: String, category: Int)
+  case class InsertBlogEntryData(title: String, url: String, category: Int)
 
-  case class InsertEntrySuccess(success: Boolean, id: Int)
+  case class InsertCategoryData(title: String, url: String)
 
-  case class InsertEntryError(success: Boolean, error: String)
+  case class InsertTagData(title: String, url: String)
+
+  case class InsertSuccess(success: Boolean, id: Int)
+
+  case class InsertError(success: Boolean, error: String)
 
 }
