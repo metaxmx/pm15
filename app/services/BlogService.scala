@@ -48,4 +48,7 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
 
   def insertTag(tag: Tag) = tagDAO.insert(tag)
 
+  def updateBlogContent(id: Int, content: String, contentRendered: String, abstractRendered: String) =
+    blogEntryDAO.updateContent(id, content, contentRendered, abstractRendered)
+
 }

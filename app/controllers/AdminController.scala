@@ -17,9 +17,21 @@ import models.BlogEntry
 import util.renderers.MarkdownContentRenderer
 import models.Category
 import models.Tag
+import play.api.libs.json.JsSuccess
+import util.JsonExtraction
+import viewmodels.BlogEntryWithMeta
+import util.renderers.ContentRenderers
+import util.renderers.RenderContext
+import java.io.File
+import util.renderers.RenderTypeBlog
+import scala.util.Failure
+import scala.util.Success
+import util.renderers.ContentWithAbstract
 
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
+
+  val blogMediaFolder = "media/blog"
 
   /*
    * Pages
@@ -69,6 +81,12 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
 
   implicit val formatBlogEntryData = Json.format[BlogEntryData]
 
+  implicit val formatBlogEditMetaData = Json.format[BlogEditMetaData]
+
+  implicit val formatBlogEditContent = Json.format[BlogEditContent]
+
+  implicit val formatEditError = Json.format[EditError]
+
   def getRestBlogList = AdminAction.async {
     blogService.getListWithMeta() map {
       blogEntryData =>
@@ -105,11 +123,7 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
     blogService.getByIdWithMeta(id) map {
       case None => Ok(Json.toJson(BlogEntryNotFound(false))).as(JSON)
       case Some(blog) => {
-        val blogData = BlogEntryData(true, blog.blogEntry.title, blog.blogEntry.url, blog.blogEntry.content,
-          blog.blogEntry.abstractRendered, blog.blogEntry.contentRendered, blog.blogEntry.contentFormat, blog.blogEntry.published,
-          blog.blogEntry.publishedDate map (fullDateTimeFormat print _),
-          BlogEntryDataCategory(blog.category.id, blog.category.title, blog.category.url),
-          blog.tags.map { tag => BlogEntryDataTag(tag.id, tag.title, tag.url) }, blog.blogEntry.views)
+        val blogData = BlogEntryData.fromBlog(blog)
         Ok(Json.toJson(blogData)).as(JSON)
       }
     }
@@ -155,6 +169,59 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
       }
   }
 
+  def putRestEditBlogEntry(id: Int) = AdminAction.async(parse.json) {
+    request =>
+      val extractAsMeta = JsonExtraction.extract[BlogEditMetaData]
+      val extractAsContent = JsonExtraction.extract[BlogEditContent]
+      request.body match {
+        case extractAsMeta(metaReq) => {
+
+          println("TODO: Meta Update")
+
+          // Fetch updated blog entry
+          blogService.getByIdWithMeta(id) map {
+            case None => Ok(Json.toJson(BlogEntryNotFound(false))).as(JSON)
+            case Some(blog) => {
+              val blogData = BlogEntryData.fromBlog(blog)
+              Ok(Json.toJson(blogData)).as(JSON)
+            }
+          }
+        } case extractAsContent(contentReq) => {
+          blogService.getByIdWithMeta(id) flatMap {
+            case None => Future.successful(Ok(Json.toJson(EditError(false, "Blog entry not found"))).as(JSON))
+            case Some(blog) => {
+              render(blog.blogEntry, contentReq.content) match {
+                case None                 => Future.successful(Ok(Json.toJson(EditError(false, "Blog entry not found"))).as(JSON))
+                case Some(Failure(error)) => Future.successful(Ok(Json.toJson(EditError(false, "Render error: " + error.getMessage))).as(JSON))
+                case Some(Success(contentRendered)) => {
+                  val blogData = BlogEntryData.fromBlogWithContent(blog, contentReq.content, contentRendered)
+                  if (contentReq.preview) {
+                    Future.successful(Ok(Json.toJson(blogData)).as(JSON))
+                  } else {
+                    blogService.updateBlogContent(id, contentReq.content, contentRendered.content, contentRendered.abstractText) map {
+                      success =>
+                        if (success)
+                          Ok(Json.toJson(blogData)).as(JSON)
+                        else
+                          Ok(Json.toJson(EditError(false, "Error during database update"))).as(JSON)
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        case _ => Future.successful(BadRequest("Invalid JSON value"))
+      }
+  }
+
+  private def render(blogEntry: BlogEntry, content: String) = {
+    val attachmentDir = Option(new File(blogMediaFolder, blogEntry.id.toString)) filter { _.exists }
+    implicit val renderContext = new RenderContext(RenderTypeBlog, blogEntry.contentFormat, attachmentDir,
+      routes.BlogController.showBlogEntry(blogEntry.url), routes.BlogController.attachment(blogEntry.url, _))
+    ContentRenderers.render(content)
+  }
+
 }
 
 object AdminController {
@@ -193,5 +260,28 @@ object AdminController {
   case class BlogEntryData(success: Boolean, title: String, url: String, content: String, abstractRendered: String, contentRendered: String,
                            contentFormat: String, published: Boolean, publishedDate: Option[String], category: BlogEntryDataCategory,
                            tags: Seq[BlogEntryDataTag], views: Int)
+
+  object BlogEntryData {
+
+    def fromBlog(blog: BlogEntryWithMeta) =
+      BlogEntryData(true, blog.blogEntry.title, blog.blogEntry.url, blog.blogEntry.content,
+        blog.blogEntry.abstractRendered, blog.blogEntry.contentRendered, blog.blogEntry.contentFormat, blog.blogEntry.published,
+        blog.blogEntry.publishedDate map (fullDateTimeFormat print _),
+        BlogEntryDataCategory(blog.category.id, blog.category.title, blog.category.url),
+        blog.tags.map { tag => BlogEntryDataTag(tag.id, tag.title, tag.url) }, blog.blogEntry.views)
+
+    def fromBlogWithContent(blog: BlogEntryWithMeta, content: String, rendered: ContentWithAbstract) =
+      BlogEntryData(true, blog.blogEntry.title, blog.blogEntry.url, content,
+        rendered.abstractText, rendered.content, blog.blogEntry.contentFormat, blog.blogEntry.published,
+        blog.blogEntry.publishedDate map (fullDateTimeFormat print _),
+        BlogEntryDataCategory(blog.category.id, blog.category.title, blog.category.url),
+        blog.tags.map { tag => BlogEntryDataTag(tag.id, tag.title, tag.url) }, blog.blogEntry.views)
+  }
+
+  case class BlogEditMetaData(title: String, url: String, published: Boolean, publishedDate: Option[String], category: Int, tags: Seq[Int])
+
+  case class BlogEditContent(content: String, preview: Boolean)
+
+  case class EditError(success: Boolean, error: String)
 
 }

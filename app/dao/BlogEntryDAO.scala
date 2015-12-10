@@ -73,4 +73,14 @@ class BlogEntryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
     }
   }
 
+  def updateContent(id: Int, content: String, contentRendered: String, abstractRendered: String): Future[Boolean] = db.run {
+    val query = for {
+      blogEntry <- BlogEntries if blogEntry.id === id
+    } yield (blogEntry.content, blogEntry.contentRendered, blogEntry.abstractRendered)
+    val updateAction = query.update(content, contentRendered, abstractRendered)
+    updateAction
+  } map {
+    numChanged => numChanged > 0
+  }
+
 }

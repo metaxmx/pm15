@@ -313,6 +313,20 @@ function adminEditBlogPage(blogId) {
 		});
 	}
 	
+	function saveContent() {
+		var data = {
+				'content': editor.getValue(),
+				'preview': false
+		}
+		putRequest('/rest/admin/blog/entry/' + blogId + '/', data, function onBlogUpdateSuccess(data) {
+			console.log(data);
+			if(data.success) {
+			} else if(data.error) {
+				alert(data.error);
+			}
+		});
+	}
+	
 	function initEditBlogPage() {
 		var editorElem = $("#blogContentEditor");
 		editorElem.css('position', 'relative');
@@ -322,6 +336,7 @@ function adminEditBlogPage(blogId) {
 		editor.setTheme("ace/theme/xcode");
 		editor.getSession().setMode("ace/mode/markdown");
 		editor.getSession().setUseWrapMode(true);
+		$('#saveContentButton').on('click', saveContent);
 		loadBlogEntry();
 	}
 	

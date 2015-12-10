@@ -42,6 +42,7 @@ POST    /rest/admin/blog/entries/             @controllers.AdminController.postR
 POST    /rest/admin/blog/categories/          @controllers.AdminController.postRestAddCategory
 POST    /rest/admin/blog/tags/                @controllers.AdminController.postRestAddTag
 GET     /rest/admin/blog/entry/:id/           @controllers.AdminController.getRestBlogEntry(id: Int)
+PUT     /rest/admin/blog/entry/:id/           @controllers.AdminController.putRestEditBlogEntry(id: Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                         @controllers.Assets.at(path="/public", file)
