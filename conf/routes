@@ -43,6 +43,10 @@ POST    /rest/admin/blog/categories/          @controllers.AdminController.postR
 POST    /rest/admin/blog/tags/                @controllers.AdminController.postRestAddTag
 GET     /rest/admin/blog/entry/:id/           @controllers.AdminController.getRestBlogEntry(id: Int)
 PUT     /rest/admin/blog/entry/:id/           @controllers.AdminController.putRestEditBlogEntry(id: Int)
+PUT     /rest/admin/blog/category/:id/        @controllers.AdminController.putRestEditCategory(id: Int)
+PUT     /rest/admin/blog/tag/:id/             @controllers.AdminController.putRestEditTag(id: Int)
+DELETE  /rest/admin/blog/category/:id/        @controllers.AdminController.deleteRestDeleteCategory(id: Int)
+DELETE  /rest/admin/blog/tag/:id/             @controllers.AdminController.deleteRestDeleteTag(id: Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                         @controllers.Assets.at(path="/public", file)

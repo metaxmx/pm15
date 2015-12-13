@@ -5,6 +5,7 @@ import javax.inject.{ Inject, Singleton }
 import scala.concurrent.Future
 
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import models._
 import slick.driver.MySQLDriver.api._
@@ -15,6 +16,15 @@ class CategoryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
 
   def getByUrl(url: String): Future[Option[Category]] = db.run {
     Categories.filter(_.url === url).result.headOption
+  }
+
+  def update(id: Int, title: String, url: String): Future[Boolean] = db.run {
+    val query = for {
+      category <- Categories if category.id === id
+    } yield (category.title, category.url)
+    query.update(title, url)
+  } map {
+    numChanged => numChanged > 0
   }
 
 }

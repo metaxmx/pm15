@@ -87,6 +87,18 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
 
   implicit val formatEditError = Json.format[EditError]
 
+  implicit val formatEditCategoryData = Json.format[EditCategoryData]
+
+  implicit val formatEditCategoryResult = Json.format[EditCategoryResult]
+
+  implicit val formatEditTagData = Json.format[EditTagData]
+
+  implicit val formatEditTagResult = Json.format[EditTagResult]
+
+  implicit val formatDeleteError = Json.format[DeleteError]
+
+  implicit val formatDeleteSuccess = Json.format[DeleteSuccess]
+
   def getRestBlogList = AdminAction.async {
     blogService.getListWithMeta() map {
       blogEntryData =>
@@ -215,6 +227,38 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
       }
   }
 
+  def putRestEditCategory(id: Int) = AdminAction.async(parse.json[EditCategoryData]) {
+    request =>
+      val catData = request.body
+      blogService.updateCategory(id, catData.title, catData.url) map {
+        case false => Ok(Json.toJson(EditError(false, "Error during database update"))).as(JSON)
+        case true  => Ok(Json.toJson(EditCategoryResult(true, id, catData.title, catData.url))).as(JSON)
+      }
+  }
+
+  def putRestEditTag(id: Int) = AdminAction.async(parse.json[EditTagData]) {
+    request =>
+      val tagData = request.body
+      blogService.updateTag(id, tagData.title, tagData.url) map {
+        case false => Ok(Json.toJson(EditError(false, "Error during database update"))).as(JSON)
+        case true  => Ok(Json.toJson(EditTagResult(true, id, tagData.title, tagData.url))).as(JSON)
+      }
+  }
+
+  def deleteRestDeleteCategory(id: Int) = AdminAction.async {
+    blogService.deleteCategory(id) map {
+      case false => Ok(Json.toJson(DeleteError(false, "Error during database delete"))).as(JSON)
+      case true  => Ok(Json.toJson(DeleteSuccess(true, id))).as(JSON)
+    }
+  }
+
+  def deleteRestDeleteTag(id: Int) = AdminAction.async {
+    blogService.deleteTag(id) map {
+      case false => Ok(Json.toJson(DeleteError(false, "Error during database delete"))).as(JSON)
+      case true  => Ok(Json.toJson(DeleteSuccess(true, id))).as(JSON)
+    }
+  }
+
   private def render(blogEntry: BlogEntry, content: String) = {
     val attachmentDir = Option(new File(blogMediaFolder, blogEntry.id.toString)) filter { _.exists }
     implicit val renderContext = new RenderContext(RenderTypeBlog, blogEntry.contentFormat, attachmentDir,
@@ -226,7 +270,7 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
 
 object AdminController {
 
-  val fullDateTimeFormat = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm")
+  val fullDateTimeFormat = DateTimeFormat forPattern "dd.MM.yyyy HH:mm"
 
   case class BlogList(entries: Seq[BlogListEntry])
 
@@ -284,4 +328,15 @@ object AdminController {
 
   case class EditError(success: Boolean, error: String)
 
+  case class EditCategoryData(title: String, url: String)
+
+  case class EditCategoryResult(success: Boolean, id: Int, title: String, url: String)
+
+  case class EditTagData(title: String, url: String)
+
+  case class EditTagResult(success: Boolean, id: Int, title: String, url: String)
+
+  case class DeleteSuccess(success: Boolean, id: Int)
+
+  case class DeleteError(success: Boolean, error: String)
 }

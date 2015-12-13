@@ -1,12 +1,12 @@
 package services
 
 import javax.inject.{ Inject, Singleton }
+
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import dao._
+import models._
 import viewmodels.BlogEntryData
-import models.BlogEntry
-import models.Category
-import models.Tag
 
 @Singleton
 class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
@@ -50,5 +50,13 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
 
   def updateBlogContent(id: Int, content: String, contentRendered: String, abstractRendered: String) =
     blogEntryDAO.updateContent(id, content, contentRendered, abstractRendered)
+
+  def updateCategory(id: Int, title: String, url: String) = catDAO.update(id, title, url)
+
+  def deleteCategory(id: Int) = catDAO.delete(id)
+
+  def updateTag(id: Int, title: String, url: String) = tagDAO.update(id, title, url)
+
+  def deleteTag(id: Int) = tagDAO.delete(id)
 
 }

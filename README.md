@@ -27,13 +27,15 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [x] Sitemap
 * [x] Table of Contents in Blog Entries
 * [x] "Read Complete Article" link on shortened abstracts
+* [x] Admin Mode
+* [x] Write Blog Entry
+* [x] Add Tags
+* [x] Add Categories
 
 ## TODO
 
 * [ ] "Spoiler" Tag for collapsed large file contents
 * [ ] Image Galery
-* [ ] Admin Mode
-* [ ] Write Blog Entry
 * [ ] Edit/Delete Blog Entry
 * [ ] Attachment Uploads
 * [ ] Styles for additional Tokens: variable, Classname, Filename, Input

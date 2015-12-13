@@ -1,14 +1,14 @@
 package dao
 
-import slick.driver.MySQLDriver.api._
-import play.api.db.slick.DatabaseConfigProvider
-import javax.inject._
-import slick.driver.JdbcProfile
-import slick.driver.MySQLDriver
-import models._
+import javax.inject.{ Inject, Singleton }
+
 import scala.concurrent.Future
-import viewmodels.BlogEntryWithMeta
-import play.api.libs.concurrent.Execution.Implicits._
+
+import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+import models._
+import slick.driver.MySQLDriver.api._
 import viewmodels.BlogEntryWithMeta
 
 @Singleton
