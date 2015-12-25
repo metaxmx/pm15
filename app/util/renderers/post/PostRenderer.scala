@@ -8,7 +8,7 @@ import util.renderers.RenderContext
 
 trait PostRenderer {
 
-  def include(implicit context: RenderContext): Boolean
+  def include(implicit context: RenderContext): Boolean = true
 
   def render(content: ContentWithAbstract)(implicit context: RenderContext): ContentWithAbstract
 
@@ -22,6 +22,7 @@ object PostRenderers {
       ExternalLinksPostRenderer ::
       AttachmentImageUrlPostRenderer ::
       TableOfContentsPostRenderer ::
+      ImageGalleryPostRenderer ::
       Nil
 
   def postRender(renderedContent: ContentWithAbstract)(implicit context: RenderContext): Try[ContentWithAbstract] = Try {

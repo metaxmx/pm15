@@ -525,3 +525,47 @@ div.read-more {
 	margin-top: 8px;
 }
 
+div.image_box {
+	background-color: #ffffff;
+	border: 1px solid #999;
+	.border-radius(4px);
+	padding: 8px;
+	text-align: center;
+	
+	.image_subtitle {
+		display: block;
+		color: #333333;
+		font-style: italic;
+		margin-top: 8px;
+	}
+}
+
+div.image_gallery {
+	.clearfix();
+	
+	.image_container {
+		float: left;
+		width: 400px;
+		background-color: #ffffff;
+		border: 1px solid #999;
+		.border-radius(4px);
+		padding: 8px;
+		text-align: center;
+		margin-right: 16px;
+		margin-bottom: 16px;
+		
+		img {
+			max-width: 380px;
+		}
+	}
+	.image_title {
+		display: block;
+		color: #333333;
+		font-style: italic;
+		margin-top: 8px;
+	}
+	.image_gallery_split {
+		clear: both;
+	}
+}
+

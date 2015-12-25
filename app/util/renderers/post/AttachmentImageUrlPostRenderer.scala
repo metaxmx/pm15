@@ -15,10 +15,10 @@ object AttachmentImageUrlPostRenderer extends PostRenderer {
   def fixAttachmentImageUrls(content: String)(implicit context: RenderContext): String = {
     val doc = Jsoup parseBodyFragment content
     doc.body.select("img[src]").foreach {
-      link =>
-        val src = link.attr("src")
+      img =>
+        val src = img.attr("src")
         if (!src.contains("/")) {
-          link.attr("src", context.attachmentCall(src).path)
+          img.attr("src", context.attachmentCall(src).path)
         }
     }
     doc.body.html

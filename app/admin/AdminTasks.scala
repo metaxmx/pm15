@@ -29,9 +29,12 @@ import controllers.routes
 object AdminTasks extends Logging {
 
   val importFolderBlog = "import/blog"
-  val importFolderStatic = "import/static"
 
   val intId = "([0-9]+)".r
+
+  val importFolderPattern = "^0*([1-9][0-9]*)(__.*)?$".r
+
+  lazy val importFolders = makeImportFolders
 
   val mdFormat = MarkdownContentRenderer.renderFormat
 
@@ -97,7 +100,7 @@ object AdminTasks extends Logging {
             log.info(s"Render Blog ${blog.id}")
             val attachmentsFolder = Option(new File(s"media/blog/${blog.id}")) filter { _.isDirectory }
             implicit val context = RenderContext(RenderTypeBlog, blog.contentFormat, attachmentsFolder,
-                routes.BlogController.showBlogEntry(blog.url), routes.BlogController.attachment(blog.url, _))
+              routes.BlogController.showBlogEntry(blog.url), routes.BlogController.attachment(blog.url, _))
             ContentRenderers.render(blog.content) match {
               case None             => log.warn(s"Content Format ${blog.contentFormat} in blog entry ${blog.id} not defined.")
               case Some(Failure(e)) => log.error(s"Error during rendering of blog entry ${blog.id}", e)
@@ -111,7 +114,8 @@ object AdminTasks extends Logging {
     }
   }
 
-  case class BlogMeta(title: String, category: String, tags: Seq[String], published: Boolean, publishDate: Option[String]) {
+  case class BlogMeta(title: String, url: Option[String], category: String, tags: Seq[String],
+                      published: Boolean, publishDate: Option[String]) {
 
     val dateTimePattern = "yy-MM-dd HH:mm:ss";
 
@@ -124,27 +128,28 @@ object AdminTasks extends Logging {
 
   def importBlog(id: Option[Int] = None): Unit = id match {
     case None => {
-      val importBlogFolder = Option(new File(importFolderBlog)).filter(_.isDirectory)
-      importBlogFolder.foreach {
-        _.listFiles.filter(_.getName.matches("[0-9]+")).foreach { f => importBlog(Some(f.getName.toInt)) }
-      }
+      importFolders.keys.toSeq.sorted.foreach { id => importBlog(Some(id)) }
     }
     case Some(id) => {
-      val importData = for {
-        blogFolder <- checkFile(new File(s"$importFolderBlog/$id"))
-        contentFile <- checkFile(new File(blogFolder, "content.md"))
-        metaFile <- checkFile(new File(blogFolder, "meta.json"))
-        attachmentsFolder <- Success(Option(new File(blogFolder, "attachments")) filter { _.exists })
-      } yield (blogFolder, contentFile, metaFile, attachmentsFolder)
-      importData match {
-        case Failure(e) => log.error(s"Error finding file ${e.getMessage}")
-        case Success((blogFolder, contentFile, metaFile, attachmentsFolder)) => {
-          val metaData = FileUtils.readFileToString(metaFile, "UTF-8")
-          val contentData = FileUtils.readFileToString(contentFile, "UTF-8")
-          val metaJson = Json.parse(metaData)
-          metaJson.asOpt[BlogMeta] match {
-            case None       => log.error(s"Error parsing $metaFile")
-            case Some(meta) => importBlogEntry(id, meta, contentData, attachmentsFolder)
+      importFolders.get(id) match {
+        case None => log.warn(s"Import Folder with id=$id not recognized.")
+        case Some(blogFolder) => {
+          val importData = for {
+            contentFile <- checkFile(new File(blogFolder, "content.md"))
+            metaFile <- checkFile(new File(blogFolder, "meta.json"))
+            attachmentsFolder <- Success(Option(new File(blogFolder, "attachments")) filter { _.exists })
+          } yield (blogFolder, contentFile, metaFile, attachmentsFolder)
+          importData match {
+            case Failure(e) => log.error(s"Error finding file ${e.getMessage}")
+            case Success((blogFolder, contentFile, metaFile, attachmentsFolder)) => {
+              val metaData = FileUtils.readFileToString(metaFile, "UTF-8")
+              val contentData = FileUtils.readFileToString(contentFile, "UTF-8")
+              val metaJson = Json.parse(metaData)
+              metaJson.asOpt[BlogMeta] match {
+                case None       => log.error(s"Error parsing $metaFile")
+                case Some(meta) => importBlogEntry(id, meta, contentData, attachmentsFolder)
+              }
+            }
           }
         }
       }
@@ -211,10 +216,10 @@ object AdminTasks extends Logging {
 
         val categoryId = getOrCreateCategory(meta.category)
         val tagIds = meta.tags.map { getOrCreateTag(_) }
-        val url = mkUrl(meta.title)
+        val url = meta.url getOrElse mkUrl(meta.title)
 
         implicit val context = RenderContext(RenderTypeBlog, mdFormat, attachmentsFolder,
-            routes.BlogController.showBlogEntry(url), routes.BlogController.attachment(url, _))
+          routes.BlogController.showBlogEntry(url), routes.BlogController.attachment(url, _))
         val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content) match {
           case None => {
             log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")
@@ -273,6 +278,21 @@ object AdminTasks extends Logging {
       Success(file)
     else
       Failure(new FileNotFoundException(s"File $file not found"))
+  }
+
+  private def makeImportFolders: Map[Int, File] = {
+    Option(new File(importFolderBlog)) filter (_.exists) map {
+      parent =>
+        parent.listFiles filter {
+          subFolder => subFolder.getName.matches(importFolderPattern.regex)
+        } map {
+          subFolder =>
+            subFolder.getName match {
+              case importFolderPattern(number, subtitle) => (number.toInt, subFolder)
+              case _                                     => throw new IllegalArgumentException("Pattern mismatch")
+            }
+        } toMap
+    } getOrElse (Map())
   }
 
   private def withDb(block: Database => Unit) = {
