@@ -16,6 +16,9 @@ GET    /blog/archiv/:year/:month/             @controllers.BlogController.blogBy
 GET    /blog/archiv/:year/:month/seite:page/  @controllers.BlogController.blogByMonthPage(year: Int, month: Int, page: Int)
 GET    /blog/:url/                            @controllers.BlogController.showBlogEntry(url)
 GET    /blog/:url/:file                       @controllers.BlogController.attachment(url, file)
+GET    /blog/:url/gallery/:file               @controllers.BlogController.attachmentGallery(url, file)
+GET    /blog/:url/box/:file                   @controllers.BlogController.attachmentBox(url, file)
+GET    /blog/:url/small/:file                 @controllers.BlogController.attachmentStandalone(url, file)
 
 # Static Page
 GET     /                                     @controllers.StaticPageController.showIndexPage

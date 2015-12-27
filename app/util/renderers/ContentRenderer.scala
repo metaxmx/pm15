@@ -1,17 +1,36 @@
 package util.renderers
 
-import scala.util.Try
-import util.renderers.post.PostRenderers
 import java.io.File
-import util.renderers.pre.PreRenderers
+
+import scala.util.Try
+
+import controllers.routes
+import models.BlogEntry
 import play.api.mvc.Call
+import util.renderers.post.PostRenderers
+import util.renderers.pre.PreRenderers
 
 case class ContentWithAbstract(abstractText: String, content: String)
 
 sealed trait RenderType
 case object RenderTypeBlog extends RenderType
 
-case class RenderContext(renderType: RenderType, format: String, attachments: Option[File], call: Call, attachmentCall: String => Call)
+case class RenderContext(renderType: RenderType, format: String, attachments: Option[File],
+                         call: Call, attachmentCall: String => Call, galleryAttachmentCall: String => Call,
+                         boxAttachmentCall: String => Call, thumbnailAttachmentCall: String => Call)
+
+object RenderContext {
+
+  def blogAttachmentDestination(blogId: Int) = new File(s"media/blog/$blogId")
+
+  def blogAttachmentFolder(blogId: Int) = Option(blogAttachmentDestination(blogId)) filter { _.isDirectory }
+
+  def blogRenderContext(blog: BlogEntry): RenderContext = RenderContext(RenderTypeBlog, blog.contentFormat,
+    blogAttachmentFolder(blog.id), routes.BlogController.showBlogEntry(blog.url),
+    routes.BlogController.attachment(blog.url, _), routes.BlogController.attachmentGallery(blog.url, _),
+    routes.BlogController.attachmentBox(blog.url, _), routes.BlogController.attachmentStandalone(blog.url, _))
+
+}
 
 trait ContentRenderer {
 

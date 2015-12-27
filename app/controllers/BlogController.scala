@@ -1,21 +1,32 @@
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import java.io.File
+import java.io.IOException
+
+import scala.Range
+
+import org.apache.commons.io.FileUtils
 import org.joda.time.YearMonth
+
+import com.typesafe.config.ConfigException
+
+import javax.inject.Inject
+import javax.inject.Singleton
+import models.Attachment
+import models.AttachmentImageFormat.BoxImageFormat
+import models.AttachmentImageFormat.FullSizeImageFormat
+import models.AttachmentImageFormat.GalleryImageFormat
+import models.AttachmentImageFormat.ImageFormat
+import play.api.Play.current
 import play.api.http.Writeable
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Call
 import services.BlogService
-import util.exception.PageExceptions
-import viewmodels._
-import play.api.Play.current
-import com.typesafe.config.ConfigException
-import models.Attachment
-import scala.io.Source
-import java.io.File
-import org.apache.commons.io.FileUtils
-import java.io.IOException
 import util.Logging
+import util.exception.PageExceptions
+import viewmodels.BlogEntryData
+import viewmodels.BlogEntryList
+import viewmodels.Pagination
 
 @Singleton
 class BlogController @Inject() (blogService: BlogService) extends AbstractController with Logging {
@@ -123,9 +134,34 @@ class BlogController @Inject() (blogService: BlogService) extends AbstractContro
     } yield Ok(readAttachment(attachment)).as(attachment.mime)
   }
 
+  def attachmentGallery(blogurl: String, attachmenturl: String) =
+    attachmentFormat(GalleryImageFormat)(blogurl, attachmenturl)
+
+  def attachmentBox(blogurl: String, attachmenturl: String) =
+    attachmentFormat(BoxImageFormat)(blogurl, attachmenturl)
+
+  def attachmentStandalone(blogurl: String, attachmenturl: String) =
+    attachmentFormat(FullSizeImageFormat)(blogurl, attachmenturl)
+
+  private def attachmentFormat(format: ImageFormat)(blogurl: String, attachmenturl: String) = PageAction.async {
+    for {
+      attachment <- blogService.getAttachmentRequired(blogurl, attachmenturl)
+    } yield Ok(readAttachmentThumbnail(attachment, format)).as(attachment.mime)
+  }
+
   private def readAttachment(attachment: Attachment): Array[Byte] = {
     val blogEntryDir = new File(mediaBaseFile, s"blog/${attachment.blogId}")
     val file = new File(blogEntryDir, attachment.filename.getOrElse(attachment.url))
+    readFile(file)
+  }
+
+  private def readAttachmentThumbnail(attachment: Attachment, format: ImageFormat): Array[Byte] = {
+    val blogEntryFormatDir = new File(mediaBaseFile, s"blog/${attachment.blogId}/${format.folder}")
+    val file = new File(blogEntryFormatDir, attachment.filename.getOrElse(attachment.url))
+    readFile(file)
+  }
+
+  private def readFile(file: File): Array[Byte] = {
     if (!file.exists) {
       log.warn(s"Attachment file ${file.getPath} not existing")
       throw PageExceptions.pageNotFoundException

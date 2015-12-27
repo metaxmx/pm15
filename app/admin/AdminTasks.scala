@@ -98,9 +98,7 @@ object AdminTasks extends Logging {
         blogs.foreach {
           blog =>
             log.info(s"Render Blog ${blog.id}")
-            val attachmentsFolder = Option(new File(s"media/blog/${blog.id}")) filter { _.isDirectory }
-            implicit val context = RenderContext(RenderTypeBlog, blog.contentFormat, attachmentsFolder,
-              routes.BlogController.showBlogEntry(blog.url), routes.BlogController.attachment(blog.url, _))
+            implicit val context = RenderContext.blogRenderContext(blog)
             ContentRenderers.render(blog.content) match {
               case None             => log.warn(s"Content Format ${blog.contentFormat} in blog entry ${blog.id} not defined.")
               case Some(Failure(e)) => log.error(s"Error during rendering of blog entry ${blog.id}", e)
@@ -218,21 +216,21 @@ object AdminTasks extends Logging {
         val tagIds = meta.tags.map { getOrCreateTag(_) }
         val url = meta.url getOrElse mkUrl(meta.title)
 
-        implicit val context = RenderContext(RenderTypeBlog, mdFormat, attachmentsFolder,
-          routes.BlogController.showBlogEntry(url), routes.BlogController.attachment(url, _))
-        val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content) match {
-          case None => {
-            log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")
-            ContentWithAbstract("error", "error")
-          }
-          case Some(Failure(e)) => {
-            log.error(s"Error during rendering of blog entry ${id}", e)
-            ContentWithAbstract("error", "error")
-          }
-          case Some(Success(contentWithAbstract)) => contentWithAbstract
-        }
+        //        implicit val context = RenderContext.blogRenderContext(blog) (RenderTypeBlog, mdFormat, attachmentsFolder,
+        //          routes.BlogController.showBlogEntry(url), routes.BlogController.attachment(url, _))
+        //        val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content) match {
+        //          case None => {
+        //            log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")
+        //            ContentWithAbstract("error", "error")
+        //          }
+        //          case Some(Failure(e)) => {
+        //            log.error(s"Error during rendering of blog entry ${id}", e)
+        //            ContentWithAbstract("error", "error")
+        //          }
+        //          case Some(Success(contentWithAbstract)) => contentWithAbstract
+        //        }
         val blogEntry = BlogEntry(0, categoryId, url, meta.title, content,
-          contentRendered, abstractRendered, mdFormat, meta.published, meta.getPublishDateAsDatetime, 0)
+          "", "", mdFormat, meta.published, meta.getPublishDateAsDatetime, 0)
 
         val BlogInsertResult(blogId, blogInserted) = getOrInsertBlogEntry(blogEntry)
 
@@ -243,6 +241,7 @@ object AdminTasks extends Logging {
           Await.result(db.run(DBIO.sequence(tagInserts)), Duration.Inf)
 
           // Attachments
+          val attachmentDestination = RenderContext.blogAttachmentDestination(blogId)
           attachmentsFolder foreach {
             _.listFiles().foreach {
               file =>
@@ -250,13 +249,37 @@ object AdminTasks extends Logging {
                 val url = mkUrl(filename)
                 val filenameOpt = if (filename == url) None else Some(filename)
                 log.info(s"Add Attachment $filename")
-                val mediaFile = new File(s"media/blog/$blogId/$filename")
+                val mediaFile = new File(attachmentDestination, filename)
                 val extension = FilenameUtils.getExtension(filename)
                 val mime = mimes.get(extension).getOrElse(throw new IllegalArgumentException(s"Unknown MIME type for extension $extension"))
                 FileUtils.copyFile(file, mediaFile)
                 val attachment = Attachment(0, blogId, mkUrl(filename), filenameOpt, AttachmentTypes.InlineAttachment, mime, 0)
                 Await.result(db.run(Attachments += attachment), Duration.Inf)
             }
+          }
+
+          // Render Content
+          val blogEntryOpt = Await.result(db.run(BlogEntries.filter(_.id === blogId).result.headOption), Duration.Inf)
+          blogEntryOpt.fold {
+            log.error(s"Inserted blog entry $blogId not found for rendering")
+          } {
+            blogEntry =>
+              implicit val context = RenderContext.blogRenderContext(blogEntry)
+              val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content) match {
+                case None => {
+                  log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")
+                  ContentWithAbstract("error", "error")
+                }
+                case Some(Failure(e)) => {
+                  log.error(s"Error during rendering of blog entry ${id}", e)
+                  ContentWithAbstract("error", "error")
+                }
+                case Some(Success(contentWithAbstract)) => contentWithAbstract
+              }
+              val updateContentQuery = for {
+                blogEntry <- BlogEntries if blogEntry.id === blogId
+              } yield (blogEntry.abstractRendered, blogEntry.contentRendered)
+              Await.result(db.run(updateContentQuery.update(abstractRendered, contentRendered)), Duration.Inf)
           }
 
         }

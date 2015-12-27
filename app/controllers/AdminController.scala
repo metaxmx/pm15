@@ -31,8 +31,6 @@ import util.renderers.ContentWithAbstract
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
 
-  val blogMediaFolder = "media/blog"
-
   /*
    * Pages
    */
@@ -260,9 +258,7 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
   }
 
   private def render(blogEntry: BlogEntry, content: String) = {
-    val attachmentDir = Option(new File(blogMediaFolder, blogEntry.id.toString)) filter { _.exists }
-    implicit val renderContext = new RenderContext(RenderTypeBlog, blogEntry.contentFormat, attachmentDir,
-      routes.BlogController.showBlogEntry(blogEntry.url), routes.BlogController.attachment(blogEntry.url, _))
+    implicit val renderContext = RenderContext.blogRenderContext(blogEntry)
     ContentRenderers.render(content)
   }
 
