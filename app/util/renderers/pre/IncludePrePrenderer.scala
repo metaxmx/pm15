@@ -7,6 +7,7 @@ import com.google.common.base.Charsets.UTF_8
 import util.Logging
 import util.renderers.RenderContext
 import scala.collection.convert.WrapAsScala._
+import scala.util.matching.Regex
 
 object IncludePrePrenderer extends PreRenderer with Logging {
 
@@ -27,13 +28,14 @@ object IncludePrePrenderer extends PreRenderer with Logging {
         s"""Error: Includefile "$filename" not found"""
       } {
         file =>
-          try {
+          val includeContent = try {
             FileUtils.readFileToString(file, UTF_8)
           } catch {
             case e: Exception =>
               log.error(s"Error reading includefile $filename", e)
               s"""Error reading Includefile "$filename""""
           }
+          Regex.quoteReplacement(includeContent)
       }
     })
     val replaced2 = include_segment_regex.replaceAllIn(replaced1, m => {
@@ -45,13 +47,14 @@ object IncludePrePrenderer extends PreRenderer with Logging {
         s"""Error: Includefile "$filename" not found"""
       } {
         file =>
-          try {
+          val includeContent = try {
             FileUtils.readLines(file, UTF_8).toSeq.drop(begin - 1).take(1 + end - begin).mkString("\n")
           } catch {
             case e: Exception =>
               log.error(s"Error reading includefile $filename", e)
               s"""Error reading Includefile "$filename""""
           }
+          Regex.quoteReplacement(includeContent)
       }
     })
     replaced2
