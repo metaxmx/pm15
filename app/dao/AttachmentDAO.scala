@@ -25,4 +25,11 @@ class AttachmentDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
     queryAttachment.result.headOption
   }
 
+  def getByBlogUrl(blogurl: String) = db.run {
+    val queryAttachment = for {
+      (blog, attachment) <- BlogEntries join Attachments on (_.id === _.blogId) if (blog.url === blogurl)
+    } yield (attachment)
+    queryAttachment.result
+  }
+
 }

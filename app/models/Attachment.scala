@@ -34,10 +34,14 @@ object AttachmentTypes {
 object AttachmentImageFormat {
 
   sealed abstract class ImageFormat(
-    val folder: String,
-    val width: Int,
-    val height: Int)
-  case object GalleryImageFormat extends ImageFormat(folder = "gallery", width = 320, height = 400)
+      val folder: String,
+      val width: Int,
+      val height: Int) {
+
+    def fitInside(imgWidth: Int, imgHeight: Int) = imgWidth <= width && imgHeight <= height
+
+  }
+  case object GalleryImageFormat extends ImageFormat(folder = "gallery", width = 380, height = 400)
   case object BoxImageFormat extends ImageFormat(folder = "box", width = 890, height = 600)
   case object FullSizeImageFormat extends ImageFormat(folder = "thumb", width = 910, height = 600)
 

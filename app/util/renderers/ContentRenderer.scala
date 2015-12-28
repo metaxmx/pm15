@@ -1,21 +1,24 @@
 package util.renderers
 
 import java.io.File
-
 import scala.util.Try
-
 import controllers.routes
 import models.BlogEntry
 import play.api.mvc.Call
 import util.renderers.post.PostRenderers
 import util.renderers.pre.PreRenderers
+import models.Attachment
 
-case class ContentWithAbstract(abstractText: String, content: String)
+case class ContentWithAbstract(abstractText: String, content: String) {
+
+  def map(f: String => String) = ContentWithAbstract(f(abstractText), f(content))
+
+}
 
 sealed trait RenderType
 case object RenderTypeBlog extends RenderType
 
-case class RenderContext(renderType: RenderType, format: String, attachments: Option[File],
+case class RenderContext(renderType: RenderType, format: String, attachments: Seq[Attachment], attachmentFolder: Option[File],
                          call: Call, attachmentCall: String => Call, galleryAttachmentCall: String => Call,
                          boxAttachmentCall: String => Call, thumbnailAttachmentCall: String => Call)
 
@@ -25,7 +28,8 @@ object RenderContext {
 
   def blogAttachmentFolder(blogId: Int) = Option(blogAttachmentDestination(blogId)) filter { _.isDirectory }
 
-  def blogRenderContext(blog: BlogEntry): RenderContext = RenderContext(RenderTypeBlog, blog.contentFormat,
+  def blogRenderContext(blog: BlogEntry, attachments: Seq[Attachment]): RenderContext =
+    RenderContext(RenderTypeBlog, blog.contentFormat, attachments,
     blogAttachmentFolder(blog.id), routes.BlogController.showBlogEntry(blog.url),
     routes.BlogController.attachment(blog.url, _), routes.BlogController.attachmentGallery(blog.url, _),
     routes.BlogController.attachmentBox(blog.url, _), routes.BlogController.attachmentStandalone(blog.url, _))

@@ -23,6 +23,7 @@ object PostRenderers {
       AttachmentImageUrlPostRenderer ::
       TableOfContentsPostRenderer ::
       ImageGalleryPostRenderer ::
+      ImageResizePostRenderer ::
       Nil
 
   def postRender(renderedContent: ContentWithAbstract)(implicit context: RenderContext): Try[ContentWithAbstract] = Try {

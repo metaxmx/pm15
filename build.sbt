@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
   "org.pegdown"           %  "pegdown"               % "1.6.0"           withSources() withJavadoc,
   "org.python"            %  "jython-standalone"     % "2.5.3"           withSources() withJavadoc,
   "org.pygments"          %  "pygments"              % "1.5"                                      ,
-  "com.sksamuel.scrimage" %% "scrimage-core"         % "2.1.0"           withSources() withJavadoc,
+  "com.sksamuel.scrimage" %% "scrimage-core"         % "2.1.1"           withSources() withJavadoc,
   "org.webjars"           %  "bootstrap"             % "3.3.4"                                    ,
   "org.webjars"           %  "jquery"                % "1.11.3"                                   ,
   "org.webjars"           %  "html5shiv"             % "3.7.2"                                    ,

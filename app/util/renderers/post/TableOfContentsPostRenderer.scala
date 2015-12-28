@@ -14,7 +14,7 @@ object TableOfContentsPostRenderer extends PostRenderer {
   override def include(implicit context: RenderContext) = true
 
   override def render(content: ContentWithAbstract)(implicit context: RenderContext) = {
-    val (abstractText, contentRendered) = (giveHeadlinesIds(content.abstractText), giveHeadlinesIds(content.content))
+    val ContentWithAbstract(abstractText, contentRendered) = content map giveHeadlinesIds
     if ((abstractText contains tocToken) || (contentRendered contains tocToken)) {
       val outline = genOutline(contentRendered)
       if (!outline.entries.isEmpty) {

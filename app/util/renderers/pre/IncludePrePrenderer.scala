@@ -19,7 +19,7 @@ object IncludePrePrenderer extends PreRenderer with Logging {
   override def render(content: String)(implicit context: RenderContext): String = {
     include_regex.replaceAllIn(content, m => {
       val filename = m group 1
-      val includefile = context.attachments flatMap { dir => Option(new File(dir, filename)) filter (_.exists) filter (_.getParentFile == dir) }
+      val includefile = context.attachmentFolder flatMap { dir => Option(new File(dir, filename)) filter (_.exists) filter (_.getParentFile == dir) }
       includefile.fold {
         s"""Error: Includefile "$filename" not found"""
       } {

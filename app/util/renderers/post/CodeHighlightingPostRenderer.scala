@@ -11,8 +11,7 @@ object CodeHighlightingPostRenderer extends PostRenderer {
 
   override def include(implicit context: RenderContext) = true
 
-  override def render(content: ContentWithAbstract)(implicit context: RenderContext) =
-    ContentWithAbstract(replaceCodes(content.abstractText), replaceCodes(content.content))
+  override def render(content: ContentWithAbstract)(implicit context: RenderContext) = content map replaceCodes
 
   def replaceCodes(content: String): String = {
     val doc = Jsoup parseBodyFragment content

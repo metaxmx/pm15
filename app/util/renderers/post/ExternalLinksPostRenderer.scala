@@ -9,8 +9,7 @@ object ExternalLinksPostRenderer extends PostRenderer {
 
   override def include(implicit context: RenderContext) = true
 
-  override def render(content: ContentWithAbstract)(implicit context: RenderContext) =
-    ContentWithAbstract(replaceExternalLinks(content.abstractText), replaceExternalLinks(content.content))
+  override def render(content: ContentWithAbstract)(implicit context: RenderContext) = content map replaceExternalLinks
 
   def replaceExternalLinks(content: String): String = {
     val doc = Jsoup parseBodyFragment content

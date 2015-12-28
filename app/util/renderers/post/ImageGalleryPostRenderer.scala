@@ -11,8 +11,7 @@ object ImageGalleryPostRenderer extends PostRenderer {
   
   val galleryPattern = """\{gallery\}(.*?)\{/?gallery\}""".r
 
-  override def render(content: ContentWithAbstract)(implicit context: RenderContext) =
-    ContentWithAbstract(wrapImageBoxesAndGallery(content.abstractText), wrapImageBoxesAndGallery(content.content))
+  override def render(content: ContentWithAbstract)(implicit context: RenderContext) = content map wrapImageBoxesAndGallery
 
   def wrapImageBoxesAndGallery(content: String)(implicit context: RenderContext): String = {
     val replacedBoxElems = boxPattern.replaceAllIn(content, {

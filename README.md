@@ -31,11 +31,12 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [x] Write Blog Entry
 * [x] Add Tags
 * [x] Add Categories
+* [x] Image Galery
+* [x] Image Thumbnails
 
 ## TODO
 
 * [ ] "Spoiler" Tag for collapsed large file contents
-* [ ] Image Galery
 * [ ] Edit/Delete Blog Entry
 * [ ] Attachment Uploads
 * [ ] Styles for additional Tokens: variable, Classname, Filename, Input

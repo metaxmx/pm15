@@ -98,7 +98,9 @@ object AdminTasks extends Logging {
         blogs.foreach {
           blog =>
             log.info(s"Render Blog ${blog.id}")
-            implicit val context = RenderContext.blogRenderContext(blog)
+            val attachmentsFuture = db.run(Attachments.filter { _.blogId === blog.id }.result)
+            val attachments = Await.result(attachmentsFuture, Duration.Inf)
+            implicit val context = RenderContext.blogRenderContext(blog, attachments)
             ContentRenderers.render(blog.content) match {
               case None             => log.warn(s"Content Format ${blog.contentFormat} in blog entry ${blog.id} not defined.")
               case Some(Failure(e)) => log.error(s"Error during rendering of blog entry ${blog.id}", e)
@@ -264,7 +266,9 @@ object AdminTasks extends Logging {
             log.error(s"Inserted blog entry $blogId not found for rendering")
           } {
             blogEntry =>
-              implicit val context = RenderContext.blogRenderContext(blogEntry)
+              val attachmentsFuture = db.run(Attachments.filter { _.blogId === blogEntry.id }.result)
+              val attachments = Await.result(attachmentsFuture, Duration.Inf)
+              implicit val context = RenderContext.blogRenderContext(blogEntry, attachments)
               val ContentWithAbstract(abstractRendered, contentRendered) = ContentRenderers.render(content) match {
                 case None => {
                   log.error(s"Content Format ${mdFormat} in blog entry ${id} not defined.")

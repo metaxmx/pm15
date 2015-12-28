@@ -27,6 +27,7 @@ import util.renderers.RenderTypeBlog
 import scala.util.Failure
 import scala.util.Success
 import util.renderers.ContentWithAbstract
+import models.Attachment
 
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
@@ -200,23 +201,26 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
           blogService.getByIdWithMeta(id) flatMap {
             case None => Future.successful(Ok(Json.toJson(EditError(false, "Blog entry not found"))).as(JSON))
             case Some(blog) => {
-              render(blog.blogEntry, contentReq.content) match {
-                case None                 => Future.successful(Ok(Json.toJson(EditError(false, "Blog entry not found"))).as(JSON))
-                case Some(Failure(error)) => Future.successful(Ok(Json.toJson(EditError(false, "Render error: " + error.getMessage))).as(JSON))
-                case Some(Success(contentRendered)) => {
-                  val blogData = BlogEntryData.fromBlogWithContent(blog, contentReq.content, contentRendered)
-                  if (contentReq.preview) {
-                    Future.successful(Ok(Json.toJson(blogData)).as(JSON))
-                  } else {
-                    blogService.updateBlogContent(id, contentReq.content, contentRendered.content, contentRendered.abstractText) map {
-                      success =>
-                        if (success)
-                          Ok(Json.toJson(blogData)).as(JSON)
-                        else
-                          Ok(Json.toJson(EditError(false, "Error during database update"))).as(JSON)
+              blogService.getAttachments(blog.blogEntry.url) flatMap {
+                attachments =>
+                  render(blog.blogEntry, attachments, contentReq.content) match {
+                    case None                 => Future.successful(Ok(Json.toJson(EditError(false, "Blog entry not found"))).as(JSON))
+                    case Some(Failure(error)) => Future.successful(Ok(Json.toJson(EditError(false, "Render error: " + error.getMessage))).as(JSON))
+                    case Some(Success(contentRendered)) => {
+                      val blogData = BlogEntryData.fromBlogWithContent(blog, contentReq.content, contentRendered)
+                      if (contentReq.preview) {
+                        Future.successful(Ok(Json.toJson(blogData)).as(JSON))
+                      } else {
+                        blogService.updateBlogContent(id, contentReq.content, contentRendered.content, contentRendered.abstractText) map {
+                          success =>
+                            if (success)
+                              Ok(Json.toJson(blogData)).as(JSON)
+                            else
+                              Ok(Json.toJson(EditError(false, "Error during database update"))).as(JSON)
+                        }
+                      }
                     }
                   }
-                }
               }
             }
           }
@@ -257,8 +261,8 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
     }
   }
 
-  private def render(blogEntry: BlogEntry, content: String) = {
-    implicit val renderContext = RenderContext.blogRenderContext(blogEntry)
+  private def render(blogEntry: BlogEntry, attachments: Seq[Attachment], content: String) = {
+    implicit val renderContext = RenderContext.blogRenderContext(blogEntry, attachments)
     ContentRenderers.render(content)
   }
 

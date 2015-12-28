@@ -38,6 +38,8 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
 
   def getAttachmentRequired(blogurl: String, url: String) = require(getAttachment(blogurl, url))
 
+  def getAttachments(blogurl: String) = attachmentDAO.getByBlogUrl(blogurl)
+
   def getAllCategories() = catDAO.getAll()
 
   def getAllTags() = tagDAO.getAll()
