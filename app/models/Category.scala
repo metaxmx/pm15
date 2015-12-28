@@ -18,4 +18,5 @@ class CategoryTable(tag: SlickTag)
   def * = (id, url, title) <> (Category.tupled, Category.unapply)
 }
 
-object Categories extends TableQuery(new CategoryTable(_))
+object Categories extends TableQuery(new CategoryTable(_)) with BaseTableQuery
+

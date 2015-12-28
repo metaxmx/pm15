@@ -72,4 +72,4 @@ class AttachmentTable(tag: SlickTag)
   def * = (id, blogId, url, filename, attachmentType, mime, downloads) <> (Attachment.tupled, Attachment.unapply)
 }
 
-object Attachments extends TableQuery(new AttachmentTable(_))
+object Attachments extends TableQuery(new AttachmentTable(_)) with BaseTableQuery

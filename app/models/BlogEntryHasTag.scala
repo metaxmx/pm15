@@ -21,4 +21,4 @@ class BlogEntryHasTagTable(tag: SlickTag)
   def * = (id, blogId, tagId) <> (BlogEntryHasTag.tupled, BlogEntryHasTag.unapply)
 }
 
-object BlogEntryHasTags extends TableQuery(new BlogEntryHasTagTable(_))
+object BlogEntryHasTags extends TableQuery(new BlogEntryHasTagTable(_)) with BaseTableQuery

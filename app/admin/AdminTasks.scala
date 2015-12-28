@@ -22,6 +22,7 @@ import org.apache.commons.io.FilenameUtils
 import util.renderers.RenderContext
 import util.renderers.RenderTypeBlog
 import controllers.routes
+import java.nio.file.Files
 
 /**
  * Admin tasks.
@@ -75,15 +76,19 @@ object AdminTasks extends Logging {
     withDb {
       db =>
         val deletes = Seq(
-          Attachments.delete,
-          BlogEntryHasTags.delete,
-          BlogEntries.delete,
-          Categories.delete,
-          Tags.delete)
+          sqlu"SET FOREIGN_KEY_CHECKS=0",
+          Attachments.truncate,
+          BlogEntryHasTags.truncate,
+          BlogEntries.truncate,
+          Categories.truncate,
+          Tags.truncate,
+          sqlu"SET FOREIGN_KEY_CHECKS=1")
         println(deletes.flatMap(_.statements).mkString("\nStatements:\n", ";\n", ";\n"))
         val deleteAction = DBIO.sequence(deletes)
         Await.result(db.run(deleteAction), Duration.Inf)
     }
+    val attachmentsFolder = RenderContext.blogAttachmentRoot
+    FileUtils.deleteDirectory(attachmentsFolder)
   }
 
   def render(id: Option[Int]) = {

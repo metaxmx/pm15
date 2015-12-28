@@ -18,4 +18,5 @@ class TagTable(tag: SlickTag)
   def * = (id, url, title) <> (Tag.tupled, Tag.unapply)
 }
 
-object Tags extends TableQuery(new TagTable(_))
+object Tags extends TableQuery(new TagTable(_)) with BaseTableQuery
+

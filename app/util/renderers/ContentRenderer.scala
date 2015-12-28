@@ -24,7 +24,9 @@ case class RenderContext(renderType: RenderType, format: String, attachments: Se
 
 object RenderContext {
 
-  def blogAttachmentDestination(blogId: Int) = new File(s"media/blog/$blogId")
+  val blogAttachmentRoot = new File("media/blog")
+
+  def blogAttachmentDestination(blogId: Int) = new File(blogAttachmentRoot, blogId.toString)
 
   def blogAttachmentFolder(blogId: Int) = Option(blogAttachmentDestination(blogId)) filter { _.isDirectory }
 

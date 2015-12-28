@@ -54,4 +54,4 @@ class BlogEntryTable(tag: SlickTag)
     (BlogEntry.tupled, BlogEntry.unapply)
 }
 
-object BlogEntries extends TableQuery(new BlogEntryTable(_))
+object BlogEntries extends TableQuery(new BlogEntryTable(_)) with BaseTableQuery

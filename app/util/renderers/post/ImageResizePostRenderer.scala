@@ -66,9 +66,12 @@ object ImageResizePostRenderer extends PostRenderer with Logging {
               resized
             }
             img.attr("src", thumbCall(filename).url)
-            val link = doc.createElement("a").attr("href", context.attachmentCall(filename).url).attr("target", "_blank")
-            img.after(link)
-            link.appendChild(img)
+            if (img.parent().nodeName() != "a") {
+              // Link to fullsize image, unless image is already linked
+              val link = doc.createElement("a").attr("href", context.attachmentCall(filename).url).attr("target", "_blank")
+              img.after(link)
+              link.appendChild(img)
+            }
             imageResized
           }
           img.attr("width", imageResized.width.toString)
