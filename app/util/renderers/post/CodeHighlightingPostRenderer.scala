@@ -9,7 +9,7 @@ import org.jsoup.nodes.Node
 
 object CodeHighlightingPostRenderer extends PostRenderer {
 
-  override def include(implicit context: RenderContext) = true
+  val regex_filename = """^(.*?) ?\((.+)\)$""".r
 
   override def render(content: ContentWithAbstract)(implicit context: RenderContext) = content map replaceCodes
 
@@ -18,7 +18,10 @@ object CodeHighlightingPostRenderer extends PostRenderer {
     doc.body.select("code[class]").foreach {
       code =>
         val data = code.text
-        val language = code.className
+        val (language, filename) = code.className match {
+          case regex_filename(l, f) => (l, Some(f))
+          case _                    => (code.className, None)
+        }
         val highlighted = Jsoup parseBodyFragment highlightWithPygments(data, language)
         if (highlighted.body.children.size == 1 && highlighted.body.child(0).children.size == 1) {
           // Pygments renders highlighted in inside <div class="highlight"><pre>, so its
@@ -26,7 +29,14 @@ object CodeHighlightingPostRenderer extends PostRenderer {
           val highlightedContainer = highlighted.body.child(0).child(0)
           code.empty()
           code.appendChild(highlightedContainer)
+          code.attr("class", language)
           code.addClass("highlight")
+        }
+        if (filename.isDefined) {
+          val pre = code.parent
+          val codeHeader = doc.createElement("div").addClass("code-header").text(filename.get)
+          pre.addClass("code-with-header")
+          pre.before(codeHeader)
         }
       // else: The syntax highlighter for the language was not found, no replacement
     }

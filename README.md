@@ -31,8 +31,9 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [x] Write Blog Entry
 * [x] Add Tags
 * [x] Add Categories
-* [x] Image Galery
+* [x] Image Gallery
 * [x] Image Thumbnails
+* [x] Blog source code includes
 
 ## TODO
 
