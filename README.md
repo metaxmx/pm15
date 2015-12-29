@@ -3,10 +3,9 @@
 Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 
 **Author**: Christian Simon <[mail@planet-metax.de](mailto:mail@planet-metax.de)>  
-**Version**: 0.1 Beta  
+**Version**: 1.0  
 **License**: Apache License 2.0
 
-*This software is still in beta and not ready for productive use, yet.*
 
 ## Features Ready
 
@@ -43,6 +42,7 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [ ] Styles for additional Tokens: variable, Classname, Filename, Input
 * [ ] Better "Profile" page
 * [ ] Blog Search
+* [ ] Blog Tag-Cloud and Category Index
 * [ ] Internationalization
 
 ## Maybe Features

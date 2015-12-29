@@ -301,7 +301,8 @@ object AdminTasks extends Logging {
     "gif" -> "image/gif",
     "java" -> "text/x-java-source",
     "pl" -> "text/x-perl",
-    "sh" -> "text/x-shellscript")
+    "sh" -> "text/x-shellscript",
+    "zip" -> "application/zip")
 
   private def mkUrl(title: String) = {
     title.toLowerCase.replace(" ", "-").replace("ö", "oe").replace("ü", "ue").replace("ä", "ae").replace("ß", "ss").replace(":", "")
