@@ -23,6 +23,7 @@ import util.renderers.RenderContext
 import util.renderers.RenderTypeBlog
 import controllers.routes
 import java.nio.file.Files
+import play.api.Configuration
 
 /**
  * Admin tasks.
@@ -40,6 +41,8 @@ object AdminTasks extends Logging {
   val mdFormat = MarkdownContentRenderer.renderFormat
 
   lazy val config = ConfigFactory.defaultApplication()
+  
+  implicit lazy val playConfig = Configuration(config)
 
   def dbConfig = DatabaseConfig.forConfig[MySQLDriver](path = "slick.dbs.default", config = config)
 

@@ -8,6 +8,7 @@ import play.api.mvc.Call
 import util.renderers.post.PostRenderers
 import util.renderers.pre.PreRenderers
 import models.Attachment
+import play.api.Configuration
 
 case class ContentWithAbstract(abstractText: String, content: String) {
 
@@ -24,13 +25,16 @@ case class RenderContext(renderType: RenderType, format: String, attachments: Se
 
 object RenderContext {
 
-  val blogAttachmentRoot = new File("media/blog")
+  def blogAttachmentRoot(implicit configuration: Configuration) =
+    new File(configuration.getString("media.path").getOrElse("media") + "/blog")
 
-  def blogAttachmentDestination(blogId: Int) = new File(blogAttachmentRoot, blogId.toString)
+  def blogAttachmentDestination(blogId: Int)(implicit configuration: Configuration) =
+    new File(blogAttachmentRoot, blogId.toString)
 
-  def blogAttachmentFolder(blogId: Int) = Option(blogAttachmentDestination(blogId)) filter { _.isDirectory }
+  def blogAttachmentFolder(blogId: Int)(implicit configuration: Configuration) =
+    Option(blogAttachmentDestination(blogId)) filter { _.isDirectory }
 
-  def blogRenderContext(blog: BlogEntry, attachments: Seq[Attachment]): RenderContext =
+  def blogRenderContext(blog: BlogEntry, attachments: Seq[Attachment])(implicit configuration: Configuration): RenderContext =
     RenderContext(RenderTypeBlog, blog.contentFormat, attachments,
     blogAttachmentFolder(blog.id), routes.BlogController.showBlogEntry(blog.url),
     routes.BlogController.attachment(blog.url, _), routes.BlogController.attachmentGallery(blog.url, _),

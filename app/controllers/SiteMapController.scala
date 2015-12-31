@@ -55,7 +55,7 @@ class SiteMapController @Inject() (blogService: BlogService) extends AbstractCon
                 <changefreq>{ url.changefreq }</changefreq>
                 {
                   if (url.changed.isDefined) {
-                    <changed>{ url.lastmod.get }</changed>
+                    <lastmod>{ url.lastmod.get }</lastmod>
                   }
                 }
                 <priority>{ url.priority }</priority>

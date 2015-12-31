@@ -28,6 +28,7 @@ import scala.util.Failure
 import scala.util.Success
 import util.renderers.ContentWithAbstract
 import models.Attachment
+import play.api.Play.current
 
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
@@ -262,6 +263,7 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
   }
 
   private def render(blogEntry: BlogEntry, attachments: Seq[Attachment], content: String) = {
+    implicit val config = current.configuration
     implicit val renderContext = RenderContext.blogRenderContext(blogEntry, attachments)
     ContentRenderers.render(content)
   }
