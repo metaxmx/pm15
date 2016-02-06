@@ -14,33 +14,33 @@ function onAjaxError(xhr, textStatus, error) {
 	alert("Ajax Error (" + textStatus +"):\n" + error);
 }
 
-function ajaxRequest(method, path, data, onsuccess) {
+function ajaxRequest(method, path, data, onsuccess, onerror) {
 	var url = window.location.origin + path;
 	var request = {
 		'method': method,
 		'data': data,
 		'contentType': 'application/json; charset=UTF-8',
 		'dataType': 'json',
-		'error': onAjaxError,
+		'error': (typeof onerror === "function") ? onerror : onAjaxError,
 		'success': onsuccess
 	};
 	$.ajax(url, request);
 }
 
-function postRequest(path, data, onsuccess) {
-	ajaxRequest('POST', path, JSON.stringify(data), onsuccess);
+function postRequest(path, data, onsuccess, onerror) {
+	ajaxRequest('POST', path, JSON.stringify(data), onsuccess, onerror);
 }
 
-function getRequest(path, onsuccess) {
-	ajaxRequest('GET', path, undefined, onsuccess);
+function getRequest(path, onsuccess, onerror) {
+	ajaxRequest('GET', path, undefined, onsuccess, onerror);
 }
 
-function deleteRequest(path, onsuccess) {
-	ajaxRequest('DELETE', path, undefined, onsuccess);
+function deleteRequest(path, onsuccess, onerror) {
+	ajaxRequest('DELETE', path, undefined, onsuccess, onerror);
 }
 
-function putRequest(path, data, onsuccess) {
-	ajaxRequest('PUT', path, JSON.stringify(data), onsuccess);
+function putRequest(path, data, onsuccess, onerror) {
+	ajaxRequest('PUT', path, JSON.stringify(data), onsuccess, onerror);
 }
 
 /*
@@ -130,10 +130,7 @@ function adminOverviewPage() {
 					var entriesCol = $('<td></td>');
 					entriesCol.text(this.blogEntries);
 					entriesCol.appendTo(tr);
-					tr.on('click', (function categoryClick(id, event) {
-						console.log(id);
-						alert("Edit Category " + id);
-					}).bind(this, this.id));
+					tr.on('click', showEditCategory.bind(this));
 				});
 			} else {
 				tBody.html('<tr><td colspan="3">Keine Einträge vorhanden</td></tr>');
@@ -162,10 +159,7 @@ function adminOverviewPage() {
 					var entriesCol = $('<td></td>');
 					entriesCol.text(this.blogEntries);
 					entriesCol.appendTo(tr);
-					tr.on('click', (function categoryClick(id, event) {
-						console.log(id);
-						alert("Edit Tag " + id);
-					}).bind(this, this.id));
+					tr.on('click', showEditTag.bind(this));
 				});
 			} else {
 				tBody.html('<tr><td colspan="3">Keine Einträge vorhanden</td></tr>');
@@ -240,10 +234,11 @@ function adminOverviewPage() {
 			if (data.success) {
 				$('#createCategoryModal').modal('hide');
 				loadCategories();
-				alert('Successfully inserted with id=' + data.id);
 			} else {
 				showInsertError(data.error);
 			}
+		}, function onCategoryInsertError(xhr, textStatus, error) {
+			showInsertError(error);
 		});
 	}
 	
@@ -270,10 +265,153 @@ function adminOverviewPage() {
 			if (data.success) {
 				$('#createTagModal').modal('hide');
 				loadTags();
-				alert('Successfully inserted with id=' + data.id);
 			} else {
 				showInsertError(data.error);
 			}
+		}, function onTagInsertError(xhr, textStatus, error) {
+			showInsertError(error);
+		});
+	}
+	
+	function showEditCategory(event) {
+		var model = this;
+		$('#editCategoryTitle').val(model.title);
+		$('#editCategoryURL').val(model.url);
+		$('#editCategoryButton').off("click.editcategory");
+		$('#editCategoryButton').on("click.editcategory", editCategory.bind(undefined, model.id));
+		$('#deleteCategoryButton').off("click.delcategory");
+		$('#editCategoryMessage').addClass('hidden');
+		if (model.blogEntries !== 0) {
+			$('#deleteCategoryButton').addClass("disabled");
+			$('#deleteCategoryButton').attr("title", "Löschen nicht möglich, da noch Blog-Einträge zugewiesen sind.");
+			$('#deleteCategoryButton').tooltip();
+		} else {
+			$('#deleteCategoryButton').tooltip("destroy");
+			$('#deleteCategoryButton').removeClass("disabled");
+			$('#deleteCategoryButton').removeAttr("title");
+			$('#deleteCategoryButton').on("click.delcategory", deleteCategory.bind(undefined, model.id));
+		}
+		$('#editCategoryModal').modal('show');
+	}
+	
+	function editCategory(id) {
+		var showEditError = function showEditError(msg) {
+			$('#editCategoryMessage').html("Error: <span></span>");
+			$('#editCategoryMessage').find('span').text(msg);
+			$('#editCategoryMessage').removeClass('hidden');
+		}
+		var data = {
+				'title': $('#editCategoryTitle').val(),
+				'url': $('#editCategoryURL').val()
+		}
+		if (!data.title) {
+			showEditError("Bitten einen Titel eingeben.");
+			return;
+		}
+		if (!data.url) {
+			showEditError("Bitte eine URL eingeben.");
+			return;
+		}
+		$('#editCategoryMessage').addClass('hidden');
+		putRequest('/rest/admin/blog/category/' + id + '/', data, function onCategoryEditSuccess(data) {
+			if (data.success) {
+				$('#editCategoryModal').modal('hide');
+				loadCategories();
+			} else {
+				showEditError(data.error);
+			}
+		}, function onCategoryEditError(xhr, textStatus, error) {
+			showEditError(error);
+		});
+	}
+	
+	function deleteCategory(id) {
+		var showEditError = function showEditError(msg) {
+			$('#editCategoryMessage').html("Error: <span></span>");
+			$('#editCategoryMessage').find('span').text(msg);
+			$('#editCategoryMessage').removeClass('hidden');
+		}
+		$('#editCategoryMessage').addClass('hidden');
+		deleteRequest('/rest/admin/blog/category/' + id + '/', function onCategoryDeleteSuccess(data) {
+			if (data.success) {
+				$('#editCategoryModal').modal('hide');
+				loadCategories();
+			} else {
+				showEditError(data.error);
+			}
+		}, function onCategoryDeleteError(xhr, textStatus, error) {
+			showEditError(error);
+		});
+	}
+	
+	function showEditTag(event) {
+		var model = this;
+		$('#editTagTitle').val(model.title);
+		$('#editTagURL').val(model.url);
+		$('#editTagButton').off("click.edittag");
+		$('#editTagButton').on("click.edittag", editTag.bind(undefined, model.id));
+		$('#deleteTagButton').off("click.deltag");
+		$('#editTagMessage').addClass('hidden');
+		if (model.blogEntries !== 0) {
+			$('#deleteTagButton').addClass("disabled");
+			$('#deleteTagButton').attr("title", "Löschen nicht möglich, da noch Blog-Einträge zugewiesen sind.");
+			$('#deleteTagButton').tooltip();
+		} else {
+			$('#deleteTagButton').tooltip("destroy");
+			$('#deleteTagButton').removeClass("disabled");
+			$('#deleteTagButton').removeAttr("title");
+			$('#deleteTagButton').on("click.deltag", deleteTag.bind(undefined, model.id));
+		}
+		$('#editTagModal').modal('show');
+	}
+	
+	function editTag(id) {
+		var showEditError = function showEditError(msg) {
+			$('#editTagMessage').html("Error: <span></span>");
+			$('#editTagMessage').find('span').text(msg);
+			$('#editTagMessage').removeClass('hidden');
+		}
+		var data = {
+				'title': $('#editTagTitle').val(),
+				'url': $('#editTagURL').val()
+		}
+		if (!data.title) {
+			showEditError("Bitten einen Titel eingeben.");
+			return;
+		}
+		if (!data.url) {
+			showEditError("Bitte eine URL eingeben.");
+			return;
+		}
+		$('#editTagMessage').addClass('hidden');
+		putRequest('/rest/admin/blog/tag/' + id + '/', data, function onTagEditSuccess(data) {
+			if (data.success) {
+				$('#editTagModal').modal('hide');
+				loadTags();
+			} else {
+				showEditError(data.error);
+			}
+		}, function onTagEditError(xhr, textStatus, error) {
+			showEditError(error);
+		});
+	}
+	
+	function deleteTag(id) {
+		var showEditError = function showEditError(msg) {
+			$('#editTagMessage').html("Error: <span></span>");
+			$('#editTagMessage').find('span').text(msg);
+			$('#editTagMessage').removeClass('hidden');
+		}
+		$('#editTagMessage').addClass('hidden');
+		deleteRequest('/rest/admin/blog/tag/' + id + '/', function onTagDeleteSuccess(data) {
+			if (data.success) {
+				$('#editTagModal').modal('hide');
+				loadTags();
+			} else {
+				showEditError(data.error);
+			}
+		}, function onTagDeleteError(xhr, textStatus, error) {
+			showEditError(error);
 		});
 	}
 	

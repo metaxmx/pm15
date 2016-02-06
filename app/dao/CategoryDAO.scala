@@ -27,4 +27,8 @@ class CategoryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
     numChanged => numChanged > 0
   }
 
+  def getBlogCountByCategories() = db.run {
+    BlogEntries.groupBy(_.categoryId).map { case (catId, subQuery) => (catId, subQuery.countDistinct) }.result
+  }
+
 }

@@ -42,7 +42,17 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
 
   def getAllCategories() = catDAO.getAll()
 
+  def getAllCategoriesWithBlogCount() = for {
+    categories <- catDAO.getAll()
+    blogCountByCat <- catDAO.getBlogCountByCategories()
+  } yield categories map { cat => (cat, blogCountByCat.toMap.get(cat.id).getOrElse(0)) }
+
   def getAllTags() = tagDAO.getAll()
+
+  def getAllTagsWithBlogCount() = for {
+    tags <- tagDAO.getAll()
+    blogCountByTag <- tagDAO.getBlogCountByTags()
+  } yield tags map { tag => (tag, blogCountByTag.toMap.get(tag.id).getOrElse(0)) }
 
   def insertBlogEntry(blog: BlogEntry) = blogEntryDAO.insert(blog)
 

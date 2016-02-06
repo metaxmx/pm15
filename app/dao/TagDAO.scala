@@ -28,4 +28,8 @@ class TagDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
     numChanged => numChanged > 0
   }
 
+  def getBlogCountByTags() = db.run {
+    BlogEntryHasTags.groupBy(_.tagId).map { case (tagId, subQuery) => (tagId, subQuery.countDistinct) }.result
+  }
+
 }

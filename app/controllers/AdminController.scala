@@ -29,6 +29,7 @@ import scala.util.Success
 import util.renderers.ContentWithAbstract
 import models.Attachment
 import play.api.Play.current
+import java.sql.SQLIntegrityConstraintViolationException
 
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
@@ -114,19 +115,21 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
   }
 
   def getRestCategoryList = AdminAction.async {
-    blogService.getAllCategories() map {
+    blogService.getAllCategoriesWithBlogCount() map {
       categories =>
-        // TODO: Fetch number of blog entries
-        val categoryList = CategoryList(categories map (cat => CategoryListEntry(cat.id, cat.title, cat.url, 0)))
+        val categoryList = CategoryList(categories map {
+          case (cat, count) => CategoryListEntry(cat.id, cat.title, cat.url, count)
+        })
         Ok(Json.toJson(categoryList)).as(JSON)
     }
   }
 
   def getRestTagList = AdminAction.async {
-    blogService.getAllTags() map {
+    blogService.getAllTagsWithBlogCount() map {
       tags =>
-        // TODO: Fetch number of blog entries
-        val tagList = TagList(tags map (tag => TagListEntry(tag.id, tag.title, tag.url, 0)))
+        val tagList = TagList(tags map {
+          case (tag, count) => TagListEntry(tag.id, tag.title, tag.url, count)
+        })
         Ok(Json.toJson(tagList)).as(JSON)
     }
   }
@@ -163,6 +166,8 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
         id =>
           Ok(Json.toJson(InsertSuccess(true, id))).as(JSON)
       } recover {
+        case e: SQLIntegrityConstraintViolationException =>
+          Ok(Json.toJson(InsertError(false, "URL already in use"))).as(JSON)
         case exc: Exception =>
           Ok(Json.toJson(InsertError(false, exc.getMessage))).as(JSON)
       }
@@ -176,6 +181,8 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
         id =>
           Ok(Json.toJson(InsertSuccess(true, id))).as(JSON)
       } recover {
+        case e: SQLIntegrityConstraintViolationException =>
+          Ok(Json.toJson(InsertError(false, "URL already in use"))).as(JSON)
         case exc: Exception =>
           Ok(Json.toJson(InsertError(false, exc.getMessage))).as(JSON)
       }
@@ -236,6 +243,9 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
       blogService.updateCategory(id, catData.title, catData.url) map {
         case false => Ok(Json.toJson(EditError(false, "Error during database update"))).as(JSON)
         case true  => Ok(Json.toJson(EditCategoryResult(true, id, catData.title, catData.url))).as(JSON)
+      } recover {
+        case e: SQLIntegrityConstraintViolationException =>
+          Ok(Json.toJson(EditError(false, "URL already in use"))).as(JSON)
       }
   }
 
@@ -245,6 +255,9 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
       blogService.updateTag(id, tagData.title, tagData.url) map {
         case false => Ok(Json.toJson(EditError(false, "Error during database update"))).as(JSON)
         case true  => Ok(Json.toJson(EditTagResult(true, id, tagData.title, tagData.url))).as(JSON)
+      } recover {
+        case e: SQLIntegrityConstraintViolationException =>
+          Ok(Json.toJson(EditError(false, "URL already in use"))).as(JSON)
       }
   }
 
@@ -252,6 +265,9 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
     blogService.deleteCategory(id) map {
       case false => Ok(Json.toJson(DeleteError(false, "Error during database delete"))).as(JSON)
       case true  => Ok(Json.toJson(DeleteSuccess(true, id))).as(JSON)
+    } recover {
+      case e: SQLIntegrityConstraintViolationException =>
+        Ok(Json.toJson(DeleteError(false, "Still in use by blog entries"))).as(JSON)
     }
   }
 
@@ -259,10 +275,13 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
     blogService.deleteTag(id) map {
       case false => Ok(Json.toJson(DeleteError(false, "Error during database delete"))).as(JSON)
       case true  => Ok(Json.toJson(DeleteSuccess(true, id))).as(JSON)
+    } recover {
+      case e: SQLIntegrityConstraintViolationException =>
+        Ok(Json.toJson(DeleteError(false, "Still in use by blog entries"))).as(JSON)
     }
   }
 
-  private def render(blogEntry: BlogEntry, attachments: Seq[Attachment], content: String) = {
+  private[this] def render(blogEntry: BlogEntry, attachments: Seq[Attachment], content: String) = {
     implicit val config = current.configuration
     implicit val renderContext = RenderContext.blogRenderContext(blogEntry, attachments)
     ContentRenderers.render(content)

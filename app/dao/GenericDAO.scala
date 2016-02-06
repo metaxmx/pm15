@@ -26,7 +26,7 @@ abstract class GenericDAO[A <: KeyedEntity, B <: KeyedEntityTable with Relationa
   }
 
   def delete(id: Int) = db.run {
-    models.Tags.filter(_.id === id).delete
+    tableQuery.filter(_.id === id).delete
   } map {
     numChanged => numChanged > 0
   }
