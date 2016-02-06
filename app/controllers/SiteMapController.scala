@@ -30,7 +30,7 @@ class SiteMapController @Inject() (blogService: BlogService) extends AbstractCon
       changed: Option[DateTime],
       priority: String) {
 
-    def loc(implicit req: RequestHeader) = page.absoluteURL()
+    def loc(implicit req: RequestHeader) = page.absoluteURL(true)
 
     def lastmod = changed map (dateFormatter print _)
 

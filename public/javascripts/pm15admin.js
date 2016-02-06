@@ -443,12 +443,70 @@ function adminEditBlogPage(blogId) {
 		getRequest('/rest/admin/blog/entry/' + blogId + '/', function onBlogLoadSuccess(data) {
 			console.log(data);
 			if(data.success) {
-				editor.setValue(data.content);
-				editor.clearSelection();
-				$('#blogEntryTitle').text(data.title);
+				refreshMeta(data.blogEntry, data.availableCategories.entries, data.availableTags.entries);
+				refreshContent(data.blogEntry);
 			} else {
+				console.log("ERROR: ", data);
 			}
+		}, function onBlogLoadError(xhr, status, error) {
+			console.log(error);
+			
 		});
+	}
+	
+	function refreshMeta(data, cats, tags) {
+		$('#blogTitle').val(data.title);
+		$('#blogURL').val(data.url);
+		
+		var catSelect = $('#blogCategory');
+		catSelect.find('option[value]').remove();
+		$.each(cats, function() {
+			var option = $('<option value=""></option>');
+			option.val(this.id);
+			option.text(this.title);
+			if (this.id === data.category.id) {
+				option.prop("selected", true);
+			}
+			option.appendTo(catSelect);
+		});
+		
+		var tagDropdown = $('#blogAddTagList');
+		$.each(tags, function() {
+			var addTagItem = $('<li><a href="#"></a></li>');
+			var addTagLink = addTagItem.find('a');
+			addTagLink.text(this.title);
+			addTagLink.attr('data-id', this.id);
+			addTagLink.on('click.activatetag', activateTag.bind(undefined, this.id, this.title));
+			addTagItem.appendTo(tagDropdown);
+		});
+		
+		$.each(data.tags, function() {
+			activateTag(this.id, this.title);
+		});
+	}
+	
+	function activateTag(id, title) {
+		$('#blogAddTagList a[data-id=' + id + ']').addClass('hidden');
+		var tagsContainer = $('#blogTags');
+		if (tagsContainer.find('span[data-id=' + id + ']').length === 0) {
+			var tagSpan = $('<span class="label label-default"></span>');
+			tagSpan.attr('data-id', id);
+			tagSpan.text(title);
+			tagSpan.on('click', deactivateTag.bind(undefined, id));
+			tagSpan.appendTo(tagsContainer);
+			tagsContainer.append(" ");
+		}
+	}
+	
+	function deactivateTag(id) {
+		$('#blogAddTagList a[data-id=' + id + ']').removeClass('hidden');
+		$('#blogTags span[data-id=' + id + ']').remove();
+	}
+	
+	function refreshContent(data) {
+		editor.setValue(data.content);
+		editor.clearSelection();
+		$('#blogEntryTitle').text(data.title);
 	}
 	
 	function saveContent() {

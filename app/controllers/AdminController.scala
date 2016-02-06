@@ -80,7 +80,9 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
 
   implicit val formatBlogEntryDataTag = Json.format[BlogEntryDataTag]
 
-  implicit val formatBlogEntryData = Json.format[BlogEntryData]
+  implicit val formatBlogEntryResponseData = Json.format[BlogEntryResponseData]
+
+  implicit val formatBlogEntryResponse = Json.format[BlogEntryResponse]
 
   implicit val formatBlogEditMetaData = Json.format[BlogEditMetaData]
 
@@ -117,29 +119,30 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
   def getRestCategoryList = AdminAction.async {
     blogService.getAllCategoriesWithBlogCount() map {
       categories =>
-        val categoryList = CategoryList(categories map {
-          case (cat, count) => CategoryListEntry(cat.id, cat.title, cat.url, count)
-        })
-        Ok(Json.toJson(categoryList)).as(JSON)
+        Ok(Json.toJson(CategoryList.fromCategoriesCount(categories))).as(JSON)
     }
   }
 
   def getRestTagList = AdminAction.async {
     blogService.getAllTagsWithBlogCount() map {
       tags =>
-        val tagList = TagList(tags map {
-          case (tag, count) => TagListEntry(tag.id, tag.title, tag.url, count)
-        })
-        Ok(Json.toJson(tagList)).as(JSON)
+        Ok(Json.toJson(TagList.fromTagsCount(tags))).as(JSON)
     }
   }
 
   def getRestBlogEntry(id: Int) = AdminAction.async {
-    blogService.getByIdWithMeta(id) map {
-      case None => Ok(Json.toJson(BlogEntryNotFound(false))).as(JSON)
-      case Some(blog) => {
-        val blogData = BlogEntryData.fromBlog(blog)
-        Ok(Json.toJson(blogData)).as(JSON)
+    for {
+      blogWithMeta <- blogService.getByIdWithMeta(id)
+      availableTags <- blogService.getAllTags()
+      availableCategories <- blogService.getAllCategories()
+    } yield {
+      blogWithMeta match {
+        case None => Ok(Json.toJson(BlogEntryNotFound(false))).as(JSON)
+        case Some(blog) => {
+          val blogData = BlogEntryResponse(true, BlogEntryResponseData.fromBlog(blog),
+              CategoryList.fromCategories(availableCategories), TagList.fromTags(availableTags))
+          Ok(Json.toJson(blogData)).as(JSON)
+        }
       }
     }
   }
@@ -201,7 +204,7 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
           blogService.getByIdWithMeta(id) map {
             case None => Ok(Json.toJson(BlogEntryNotFound(false))).as(JSON)
             case Some(blog) => {
-              val blogData = BlogEntryData.fromBlog(blog)
+              val blogData = BlogEntryResponseData.fromBlog(blog)
               Ok(Json.toJson(blogData)).as(JSON)
             }
           }
@@ -215,7 +218,7 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
                     case None                 => Future.successful(Ok(Json.toJson(EditError(false, "Blog entry not found"))).as(JSON))
                     case Some(Failure(error)) => Future.successful(Ok(Json.toJson(EditError(false, "Render error: " + error.getMessage))).as(JSON))
                     case Some(Success(contentRendered)) => {
-                      val blogData = BlogEntryData.fromBlogWithContent(blog, contentReq.content, contentRendered)
+                      val blogData = BlogEntryResponseData.fromBlogWithContent(blog, contentReq.content, contentRendered)
                       if (contentReq.preview) {
                         Future.successful(Ok(Json.toJson(blogData)).as(JSON))
                       } else {
@@ -299,12 +302,32 @@ object AdminController {
                            category: String, tags: Seq[String], views: Int)
 
   case class CategoryList(entries: Seq[CategoryListEntry])
+  
+  object CategoryList {
+    
+    def fromCategoriesCount(categories: Seq[(Category, Int)]) =
+      CategoryList(categories map { case (cat, count) => CategoryListEntry(cat.id, cat.title, cat.url, Some(count)) })
+      
+   def fromCategories(categories: Seq[Category]) =
+      CategoryList(categories map { case cat => CategoryListEntry(cat.id, cat.title, cat.url, None) })
+    
+  }
 
-  case class CategoryListEntry(id: Int, title: String, url: String, blogEntries: Int)
+  case class CategoryListEntry(id: Int, title: String, url: String, blogEntries: Option[Int])
 
   case class TagList(entries: Seq[TagListEntry])
+  
+  object TagList {
 
-  case class TagListEntry(id: Int, title: String, url: String, blogEntries: Int)
+    def fromTagsCount(tags: Seq[(Tag, Int)]) =
+      TagList(tags map { case (tag, count) => TagListEntry(tag.id, tag.title, tag.url, Some(count)) })
+
+    def fromTags(tags: Seq[Tag]) =
+      TagList(tags map { case tag => TagListEntry(tag.id, tag.title, tag.url, None) })
+
+  }
+
+  case class TagListEntry(id: Int, title: String, url: String, blogEntries: Option[Int])
 
   case class InsertBlogEntryData(title: String, url: String, category: Int)
 
@@ -322,21 +345,24 @@ object AdminController {
 
   case class BlogEntryDataTag(id: Int, title: String, url: String)
 
-  case class BlogEntryData(success: Boolean, title: String, url: String, content: String, abstractRendered: String, contentRendered: String,
+  case class BlogEntryResponse(success: Boolean, blogEntry: BlogEntryResponseData,
+      availableCategories: CategoryList, availableTags: TagList)
+
+  case class BlogEntryResponseData(success: Boolean, title: String, url: String, content: String, abstractRendered: String, contentRendered: String,
                            contentFormat: String, published: Boolean, publishedDate: Option[String], category: BlogEntryDataCategory,
                            tags: Seq[BlogEntryDataTag], views: Int)
 
-  object BlogEntryData {
+  object BlogEntryResponseData {
 
     def fromBlog(blog: BlogEntryWithMeta) =
-      BlogEntryData(true, blog.blogEntry.title, blog.blogEntry.url, blog.blogEntry.content,
+      BlogEntryResponseData(true, blog.blogEntry.title, blog.blogEntry.url, blog.blogEntry.content,
         blog.blogEntry.abstractRendered, blog.blogEntry.contentRendered, blog.blogEntry.contentFormat, blog.blogEntry.published,
         blog.blogEntry.publishedDate map (fullDateTimeFormat print _),
         BlogEntryDataCategory(blog.category.id, blog.category.title, blog.category.url),
         blog.tags.map { tag => BlogEntryDataTag(tag.id, tag.title, tag.url) }, blog.blogEntry.views)
 
     def fromBlogWithContent(blog: BlogEntryWithMeta, content: String, rendered: ContentWithAbstract) =
-      BlogEntryData(true, blog.blogEntry.title, blog.blogEntry.url, content,
+      BlogEntryResponseData(true, blog.blogEntry.title, blog.blogEntry.url, content,
         rendered.abstractText, rendered.content, blog.blogEntry.contentFormat, blog.blogEntry.published,
         blog.blogEntry.publishedDate map (fullDateTimeFormat print _),
         BlogEntryDataCategory(blog.category.id, blog.category.title, blog.category.url),
