@@ -208,7 +208,8 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
               Ok(Json.toJson(blogData)).as(JSON)
             }
           }
-        } case extractAsContent(contentReq) => {
+        }
+        case extractAsContent(contentReq) => {
           blogService.getByIdWithMeta(id) flatMap {
             case None => Future.successful(Ok(Json.toJson(EditError(false, "Blog entry not found"))).as(JSON))
             case Some(blog) => {

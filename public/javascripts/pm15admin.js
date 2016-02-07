@@ -457,6 +457,12 @@ function adminEditBlogPage(blogId) {
 	function refreshMeta(data, cats, tags) {
 		$('#blogTitle').val(data.title);
 		$('#blogURL').val(data.url);
+		$('#blogPublished').prop('checked', data.published);
+		if (data.publishedDate) {
+			$('#blogPublishedDate').val(data.publishedDate);
+		}
+		updatePublishDateInput();
+		updatePublishNow();
 		
 		var catSelect = $('#blogCategory');
 		catSelect.find('option[value]').remove();
@@ -485,6 +491,20 @@ function adminEditBlogPage(blogId) {
 		});
 	}
 	
+	function updatePublishDateInput() {
+		$('#blogPublishedDate').prop('disabled', !$('#blogPublished').prop('checked'));
+	}
+	
+	function updatePublishNow() {
+		if ($('#blogPublished').prop('checked') === false && !$('#blogPublishedDate').val()) {
+			$('#saveMetaButton').addClass('btn-default').removeClass('btn-primary');
+			$('#saveAndPublishButton').removeClass('hidden');
+		} else {
+			$('#saveMetaButton').addClass('btn-primary').removeClass('btn-default');
+			$('#saveAndPublishButton').addClass('hidden');
+		}
+	}
+	
 	function activateTag(id, title) {
 		$('#blogAddTagList a[data-id=' + id + ']').addClass('hidden');
 		var tagsContainer = $('#blogTags');
@@ -510,17 +530,101 @@ function adminEditBlogPage(blogId) {
 	}
 	
 	function saveContent() {
+		var messageContainer = $('#contentMessage');
+		messageContainer.addClass('hidden');
+		messageContainer.removeClass('alert-danger');
+		messageContainer.removeClass('alert-success');
+		$('#saveContentButton').prop('disabled', true);
+		
+		function showSuccess() {
+			messageContainer.addClass('alert-success');
+			$('#contentMessageText').text('Speichern erfolgreich');
+			messageContainer.removeClass('hidden');
+		}
+		function showError(error) {
+			messageContainer.addClass('alert-danger');
+			$('#contentMessageText').text('Error: ' + error);
+			messageContainer.removeClass('hidden');
+		}
+		
 		var data = {
-				'content': editor.getValue(),
-				'preview': false
+			'content': editor.getValue(),
+			'preview': false
 		}
 		putRequest('/rest/admin/blog/entry/' + blogId + '/', data, function onBlogUpdateSuccess(data) {
-			console.log(data);
+			$('#saveContentButton').prop('disabled', false);
 			if(data.success) {
+				showSuccess();
 			} else if(data.error) {
-				alert(data.error);
+				showError(data.error);
+			} else {
+				showError("Unbekannter Fehler")
 			}
+		}, function onBlogUpdateError(xhr, status, error) {
+			$('#saveContentButton').prop('disabled', false);
+			showError(status + " - " + error);
 		});
+	}
+	
+	function saveMeta() {
+		var showSaveError = function showSaveError(msg) {
+			$('#metaMessage').html("Error: <span></span>");
+			$('#metaMessage').addClass('alert-error').removeClass('alert-success');
+			$('#metaMessage').find('span').text(msg);
+			$('#metaMessage').removeClass('hidden');
+		}
+		var showSaveSuccess = function showSaveSuccess() {
+			$('#metaMessage').html("Erfolgreich gespeichert");
+			$('#metaMessage').addClass('alert-success').removeClass('alert-error');
+			$('#metaMessage').find('span').text(msg);
+			$('#metaMessage').removeClass('hidden');
+		}
+		var data = {
+				'title': $('#blogTitle').val(),
+				'url': $('#blogURL').val(),
+				'category': $('#blogCategory').val(),
+				'published': $('#blogPublished').prop('checked'),
+				'publishedDate': $('#blogPublishedDate').val(),
+				'tags': []
+		}
+		if (data.category) {
+			try {
+				var categoryId = parseInt(data.category);
+				data.category = categoryId;
+			} catch (e) {
+				showSaveError("Kategorie muss eine Zahl sein");
+				return;
+			}
+		}
+		$.each($('#blogTags span[data-id]'), function() {
+			var tag = $(this);
+			var id = parseInt(tag.attr('data-id'));
+			data.tags.push(id);
+		});
+		
+		if (!data.category) {
+			showSaveError("Bitte eine Kategorie auswählen.");
+			return;
+		}
+		if (!data.title) {
+			showSaveError("Bitten einen Titel eingeben.");
+			return;
+		}
+		if (!data.url) {
+			showSaveError("Bitte eine URL eingeben.");
+			return;
+		}
+		$('#metaMessage').addClass('hidden');
+		//$('#saveMetaButton').prop('disabled', true);
+		console.log(data);
+//		postRequest('/rest/admin/blog/entries/', data, function onBlogInsertSuccess(data) {
+//			if (data.success) {
+//				$('#createBlogModal').modal('hide');
+//				showBlogEditPage(data.id);
+//			} else {
+//				showInsertError(data.error);
+//			}
+//		});
 	}
 	
 	function initEditBlogPage() {
@@ -532,6 +636,12 @@ function adminEditBlogPage(blogId) {
 		editor.setTheme("ace/theme/xcode");
 		editor.getSession().setMode("ace/mode/markdown");
 		editor.getSession().setUseWrapMode(true);
+		$('#blogPublished').on('click', updatePublishDateInput);
+		$('#blogPublished').on('click', updatePublishNow);
+		$('#blogPublishedDate').on('change', updatePublishNow);
+		$('#saveAndPublishButton').tooltip();
+		
+		$('#saveMetaButton').on('click', saveMeta);
 		$('#saveContentButton').on('click', saveContent);
 		loadBlogEntry();
 	}

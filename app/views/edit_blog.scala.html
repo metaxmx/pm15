@@ -15,7 +15,7 @@
 		</div>
 		<div class="panel-body">
 			<form class="form-horizontal">
-				<div id="metaMessage" class="alert alert-danger hidden"></div>
+				<div id="metaMessage" class="alert hidden"></div>
 				<div class="form-group">
 					<label class="col-sm-2 control-label" for="blogTitle">Titel*</label>
 					<div class="col-sm-10">
@@ -71,12 +71,35 @@
 			</form>
 		</div>
 		<div class="panel-footer">
-			<button id="saveMetaButton" type="button" class="btn btn-primary">Save</button>
+			<button id="saveMetaButton" type="button" class="btn btn-primary">Speichern</button>
+			<button id="saveAndPublishButton" type="button" class="btn btn-primary"
+				data-toggle="tooltip" data-placement="right"
+				title="Speichern und jetzt veröffentlichen">Jetzt veröffentlichen</button>
 		</div>
 	</div>
 
-	<h2>Inhalt</h2>
-	<div id="blogContentEditor">Loading ...</div>
-	<button id="saveContentButton" type="button" class="btn btn-primary">Save</button>
+	<div id="editBlogContent" class="panel panel-default">
+		<div class="panel-heading">
+			<h2 class="panel-title">Inhalt</h3>
+		</div>
+		<div class="panel-body">
+			<div id="blogContentEditor">Loading ...</div>
+		</div>
+		<div class="panel-footer">
+			<div class="row">
+				<div class="col-md-6">
+					<button id="saveContentButton" type="button" class="btn btn-primary">Speichern</button>
+					<button id="previewContentButton" type="button" class="btn btn-default">Vorschau</button>
+				</div>
+				<div class="col-md-6">
+					<div id="contentMessage" class="alert hidden alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<span id="contentMessageText"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+		</div>
+	</div>
 	
 }
