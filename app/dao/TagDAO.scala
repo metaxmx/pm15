@@ -32,4 +32,22 @@ class TagDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
     BlogEntryHasTags.groupBy(_.tagId).map { case (tagId, subQuery) => (tagId, subQuery.countDistinct) }.result
   }
 
+  def assignTag(blogEntryId: Int, tagId: Int): Future[Boolean] = db.run {
+    val q = (BlogEntryHasTags) += BlogEntryHasTag(0, blogEntryId, tagId)
+    println("INS Query: " + q.statements)
+    q
+  } map {
+    numChanged => numChanged > 0
+  }
+
+  def unassignTag(blogEntryId: Int, tagId: Int): Future[Boolean] = db.run {
+    val query = for {
+      blogEntryHasTag <- BlogEntryHasTags if blogEntryHasTag.blogId === blogEntryId && blogEntryHasTag.tagId === tagId
+    } yield blogEntryHasTag
+    println("DEL Query: " + query.delete.statements)
+    query.delete
+  } map {
+    numChanged => numChanged > 0
+  }
+
 }

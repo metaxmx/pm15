@@ -3,7 +3,7 @@
 Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 
 **Author**: Christian Simon <[mail@planet-metax.de](mailto:mail@planet-metax.de)>  
-**Version**: 1.0  
+**Version**: 1.1  
 **License**: Apache License 2.0
 
 
@@ -32,6 +32,7 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 * [x] Add Categories
 * [x] Edit/Delete Tags
 * [x] Edit/Delete Categories
+* [x] Edit/Delete Blog Entry
 * [x] Image Gallery
 * [x] Image Thumbnails
 * [x] Blog source code includes
@@ -39,7 +40,6 @@ Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 ## TODO
 
 * [ ] "Spoiler" Tag for collapsed large file contents
-* [ ] Edit/Delete Blog Entry
 * [ ] Attachment Uploads
 * [ ] Styles for additional Tokens: variable, Classname, Filename, Input
 * [ ] Better "Profile" page

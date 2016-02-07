@@ -1,15 +1,15 @@
 package dao
 
 import javax.inject.{ Inject, Singleton }
-
 import scala.concurrent.Future
-
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 import models._
 import slick.driver.MySQLDriver.api._
 import viewmodels.BlogEntryWithMeta
+import org.joda.time.DateTime
+import com.github.tototoshi.slick.MySQLJodaSupport.datetimeTypeMapper
+
 
 @Singleton
 class BlogEntryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
@@ -82,5 +82,16 @@ class BlogEntryDAO @Inject() (dbConfigProvider: DatabaseConfigProvider)
   } map {
     numChanged => numChanged > 0
   }
+
+  def updateMeta(id: Int, title: String, url: String, categoryId: Int, published: Boolean, publishedDate: Option[DateTime]): Future[Boolean] = db.run {
+    val query = for {
+      blogEntry <- BlogEntries if blogEntry.id === id
+    } yield (blogEntry.title, blogEntry.url, blogEntry.categoryId, blogEntry.published, blogEntry.publishedDate)
+    val updateAction = query.update(title, url, categoryId, published, publishedDate)
+    updateAction
+  } map {
+    numChanged => numChanged > 0
+  }
+
 
 }

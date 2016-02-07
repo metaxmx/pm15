@@ -9,9 +9,18 @@
 } {
 	<h1 id="adminEditBlog" data-id="@id">Blog Eintrag bearbeiten: <span id="blogEntryTitle"></span></h1>
 	
-	<div id="editBlogMeta" class="panel panel-default">
+	<div id="blogLoadingStatus" class="panel panel-default">
 		<div class="panel-heading">
-			<h2 class="panel-title">Meta</h3>
+			<h2 class="panel-title">Bitte warten ...</h2>
+		</div>
+		<div class="panel-body">
+			<p>Der Blog-Eintrag wird geladen ...</p>
+		</div>
+	</div>
+	
+	<div id="editBlogMeta" class="panel panel-default hidden">
+		<div class="panel-heading">
+			<h2 class="panel-title">Meta</h2>
 		</div>
 		<div class="panel-body">
 			<form class="form-horizontal">
@@ -49,8 +58,6 @@
 							</button>
 							<ul class="dropdown-menu dropdown-menu-right" aria-labelledby="blogAddTagButton"
 								id="blogAddTagList" style="max-height: 300px; overflow-y: auto;">
-								<li id="blogNewTagButton"><a href="#">Hinzufügen</a></li>
-								<li role="separator" class="divider"></li>
 							</ul>
 						</div>
 					</div>
@@ -65,31 +72,29 @@
 						</div>
 					</div>
 					<div class="col-sm-5">
-						<input type="text" class="form-control" id="blogPublishedDate" value="" disabled>
+						<input type="text" class="form-control" id="blogPublishedDate" value="" disabled placeholder="YYYY-MM-DD HH:mm:ss">
 					</div>
 				</div>
 			</form>
 		</div>
 		<div class="panel-footer">
 			<button id="saveMetaButton" type="button" class="btn btn-primary">Speichern</button>
-			<button id="saveAndPublishButton" type="button" class="btn btn-primary"
-				data-toggle="tooltip" data-placement="right"
-				title="Speichern und jetzt veröffentlichen">Jetzt veröffentlichen</button>
+			<button id="saveAndPublishButton" type="button" class="btn btn-primary">Jetzt veröffentlichen</button>
 		</div>
 	</div>
 
-	<div id="editBlogContent" class="panel panel-default">
+	<div id="editBlogContent" class="panel panel-default hidden">
 		<div class="panel-heading">
-			<h2 class="panel-title">Inhalt</h3>
+			<h2 class="panel-title">Inhalt</h2>
 		</div>
 		<div class="panel-body">
-			<div id="blogContentEditor">Loading ...</div>
+			<div id="blogContentEditor">Wird geladen ...</div>
 		</div>
 		<div class="panel-footer">
 			<div class="row">
 				<div class="col-md-6">
 					<button id="saveContentButton" type="button" class="btn btn-primary">Speichern</button>
-					<button id="previewContentButton" type="button" class="btn btn-default">Vorschau</button>
+					<a id="previewContentButton" href="#" target="preview" class="btn btn-default">Vorschau</a>
 				</div>
 				<div class="col-md-6">
 					<div id="contentMessage" class="alert hidden alert-dismissible">
@@ -99,6 +104,18 @@
 				</div>
 			</div>
 		</div>
+	</div>
+
+	<div id="blogLoadingError" class="panel panel-default hidden">
+		<div class="panel-heading">
+			<h2 class="panel-title">Fehler beim Laden</h2>
+		</div>
+		<div class="panel-body">
+			<p>Der Blog Eintrag mit der ID <strong>@id</strong> konnte nicht geladen werden.</p>
+			<p>Möglicherweise existiert der Eintrag nicht.</p>
+		</div>
+		<div class="panel-footer">
+			<a href="@routes.AdminController.adminPage" class="btn btn-primary">Zurück zur Administration</a>
 		</div>
 	</div>
 	

@@ -1,12 +1,12 @@
 package services
 
 import javax.inject.{ Inject, Singleton }
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 import dao._
 import models._
 import viewmodels.BlogEntryData
+import org.joda.time.DateTime
+import scala.concurrent.Future
 
 @Singleton
 class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
@@ -62,6 +62,21 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
 
   def updateBlogContent(id: Int, content: String, contentRendered: String, abstractRendered: String) =
     blogEntryDAO.updateContent(id, content, contentRendered, abstractRendered)
+
+  def updateBlogMeta(id: Int, title: String, url: String, categoryId: Int, published: Boolean, publishedDate: Option[DateTime]) =
+    blogEntryDAO.updateMeta(id, title, url, categoryId, published, publishedDate)
+
+  def updateTags(blogEntryId: Int, currentTags: Set[Int], updatedTags: Set[Int]): Future[Boolean] = {
+	  val toAdd = updatedTags -- currentTags
+    val toDelete = currentTags -- updatedTags
+    val addActions = (Future.successful(true) /: toAdd) {
+	    (future, tagId) => future flatMap { prev => tagDAO.assignTag(blogEntryId, tagId).map(_ & prev) }
+	  }
+	  val addAndDelActions = (addActions /: toDelete) {
+	    (future, tagId) => future flatMap { prev => tagDAO.unassignTag(blogEntryId, tagId).map(_ & prev) }
+	  }
+    addAndDelActions
+  }
 
   def updateCategory(id: Int, title: String, url: String) = catDAO.update(id, title, url)
 

@@ -440,39 +440,38 @@ function adminEditBlogPage(blogId) {
 	var editor;
 	
 	function loadBlogEntry() {
+		function loadingSuccess() {
+			$('#blogLoadingStatus').addClass('hidden');
+			$('#editBlogMeta').removeClass('hidden');
+			$('#editBlogContent').removeClass('hidden');
+			initAceEditor();
+		}
+		function loadingError() {
+			$('#blogLoadingStatus').addClass('hidden');
+			$('#blogLoadingError').removeClass('hidden');
+		}
 		getRequest('/rest/admin/blog/entry/' + blogId + '/', function onBlogLoadSuccess(data) {
-			console.log(data);
 			if(data.success) {
-				refreshMeta(data.blogEntry, data.availableCategories.entries, data.availableTags.entries);
+				loadingSuccess();
+				initMeta(data.blogEntry, data.availableCategories.entries, data.availableTags.entries);
 				refreshContent(data.blogEntry);
 			} else {
 				console.log("ERROR: ", data);
+				loadingError();
 			}
 		}, function onBlogLoadError(xhr, status, error) {
 			console.log(error);
-			
+			loadingError();
 		});
 	}
 	
-	function refreshMeta(data, cats, tags) {
-		$('#blogTitle').val(data.title);
-		$('#blogURL').val(data.url);
-		$('#blogPublished').prop('checked', data.published);
-		if (data.publishedDate) {
-			$('#blogPublishedDate').val(data.publishedDate);
-		}
-		updatePublishDateInput();
-		updatePublishNow();
-		
+	function initMeta(data, cats, tags) {
 		var catSelect = $('#blogCategory');
 		catSelect.find('option[value]').remove();
 		$.each(cats, function() {
 			var option = $('<option value=""></option>');
 			option.val(this.id);
 			option.text(this.title);
-			if (this.id === data.category.id) {
-				option.prop("selected", true);
-			}
 			option.appendTo(catSelect);
 		});
 		
@@ -485,10 +484,30 @@ function adminEditBlogPage(blogId) {
 			addTagLink.on('click.activatetag', activateTag.bind(undefined, this.id, this.title));
 			addTagItem.appendTo(tagDropdown);
 		});
+		refreshMeta(data);
+	}
+	
+	function refreshMeta(data) {
+		$('#blogEntryTitle').text(data.title);
+		$('#blogTitle').val(data.title);
+		$('#blogURL').val(data.url);
+		$('#blogPublished').prop('checked', data.published);
+		$('#blogPublishedDate').val(data.publishedDate);
+		updatePublishDateInput();
+		updatePublishNow();
 		
+		$('#blogAddTagList a[data-id]').removeClass('hidden');
+		$('#blogTags').html('');
 		$.each(data.tags, function() {
 			activateTag(this.id, this.title);
 		});
+		$('#blogCategory option').each(function() {
+			var option = $(this);
+			if (option.val() === "" + data.category.id) {
+				option.prop("selected", true);
+			}
+		});
+		$('#previewContentButton').prop('href', data.previewUrl);
 	}
 	
 	function updatePublishDateInput() {
@@ -516,6 +535,7 @@ function adminEditBlogPage(blogId) {
 			tagSpan.appendTo(tagsContainer);
 			tagsContainer.append(" ");
 		}
+		return false;
 	}
 	
 	function deactivateTag(id) {
@@ -526,7 +546,6 @@ function adminEditBlogPage(blogId) {
 	function refreshContent(data) {
 		editor.setValue(data.content);
 		editor.clearSelection();
-		$('#blogEntryTitle').text(data.title);
 	}
 	
 	function saveContent() {
@@ -566,17 +585,34 @@ function adminEditBlogPage(blogId) {
 		});
 	}
 	
-	function saveMeta() {
+	function getCurrentDateTime() {
+		var d = new Date();
+		var dd = d.getDate();
+		if ( dd < 10 ) dd = '0' + dd;
+		var mm = d.getMonth() + 1;
+		if ( mm < 10 ) mm = '0' + mm;
+		var yy = d.getFullYear();
+		var HH = d.getHours();
+		if ( HH < 10 ) HH = '0' + HH;
+		var ii = d.getMinutes();
+		if ( ii < 10 ) ii = '0' + ii;
+		var ss = d.getSeconds();
+		if ( ss < 10 ) ss = '0' + ss;
+		
+		return yy + "-" + mm +  "-" + dd + " " + HH + ":" + ii + ":" + ss;
+	}
+	
+	function saveMeta(publishNow) {
 		var showSaveError = function showSaveError(msg) {
 			$('#metaMessage').html("Error: <span></span>");
-			$('#metaMessage').addClass('alert-error').removeClass('alert-success');
+			$('#metaMessage').addClass('alert-danger').removeClass('alert-success');
 			$('#metaMessage').find('span').text(msg);
 			$('#metaMessage').removeClass('hidden');
 		}
 		var showSaveSuccess = function showSaveSuccess() {
 			$('#metaMessage').html("Erfolgreich gespeichert");
-			$('#metaMessage').addClass('alert-success').removeClass('alert-error');
-			$('#metaMessage').find('span').text(msg);
+			$('#metaMessage').addClass('alert-success').removeClass('alert-danger');
+			$('#metaMessage').find('span').text("Erfolgreich gespeichert");
 			$('#metaMessage').removeClass('hidden');
 		}
 		var data = {
@@ -614,20 +650,36 @@ function adminEditBlogPage(blogId) {
 			showSaveError("Bitte eine URL eingeben.");
 			return;
 		}
+		if (publishNow && !data.published && !data.publishedDate) {
+			data.published = true;
+			data.publishedDate = getCurrentDateTime();
+		}
+		if (data.publishedDate && !/^[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/.test(data.publishedDate)) {
+			showSaveError("Bitte gültiges Publish Datum (Format 'YYYY-MM-DD HH:mm:ss') angeben.");
+			return;
+		}
 		$('#metaMessage').addClass('hidden');
-		//$('#saveMetaButton').prop('disabled', true);
-		console.log(data);
-//		postRequest('/rest/admin/blog/entries/', data, function onBlogInsertSuccess(data) {
-//			if (data.success) {
-//				$('#createBlogModal').modal('hide');
-//				showBlogEditPage(data.id);
-//			} else {
-//				showInsertError(data.error);
-//			}
-//		});
+		$('#saveMetaButton').prop('disabled', true);
+		$('#saveAndPublishButton').prop('disabled', true);
+		putRequest('/rest/admin/blog/entry/' + blogId + '/', data, function onBlogUpdateSuccess(data) {
+			$('#saveMetaButton').prop('disabled', false);
+			$('#saveAndPublishButton').prop('disabled', false);
+			if(data.success) {
+				refreshMeta(data);
+				showSaveSuccess();
+			} else if(data.error) {
+				showSaveError(data.error);
+			} else {
+				showSaveError("Unbekannter Fehler")
+			}
+		}, function onBlogUpdateError(xhr, status, error) {
+			$('#saveMetaButton').prop('disabled', false);
+			$('#saveAndPublishButton').prop('disabled', false);
+			showSaveError(status + " - " + error);
+		});
 	}
 	
-	function initEditBlogPage() {
+	function initAceEditor() {
 		var editorElem = $("#blogContentEditor");
 		editorElem.css('position', 'relative');
 		editorElem.height(600);
@@ -636,12 +688,15 @@ function adminEditBlogPage(blogId) {
 		editor.setTheme("ace/theme/xcode");
 		editor.getSession().setMode("ace/mode/markdown");
 		editor.getSession().setUseWrapMode(true);
+	}
+	
+	function initEditBlogPage() {
 		$('#blogPublished').on('click', updatePublishDateInput);
 		$('#blogPublished').on('click', updatePublishNow);
 		$('#blogPublishedDate').on('change', updatePublishNow);
-		$('#saveAndPublishButton').tooltip();
 		
-		$('#saveMetaButton').on('click', saveMeta);
+		$('#saveMetaButton').on('click', saveMeta.bind(undefined, false));
+		$('#saveAndPublishButton').on('click', saveMeta.bind(undefined, true));
 		$('#saveContentButton').on('click', saveContent);
 		loadBlogEntry();
 	}
