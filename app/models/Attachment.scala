@@ -29,6 +29,13 @@ object AttachmentTypes {
       case DownloadAttachment.identifier => DownloadAttachment
     })
 
+  def apply(identifier: String): AttachmentType = identifier match {
+    case HiddenAttachment.identifier => HiddenAttachment
+    case InlineAttachment.identifier => InlineAttachment
+    case DownloadAttachment.identifier => DownloadAttachment
+    case _ => throw new IllegalArgumentException("Invalid AttachmentType " + identifier)
+  }
+
 }
 
 object AttachmentImageFormat {

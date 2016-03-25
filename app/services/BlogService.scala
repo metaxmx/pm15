@@ -7,6 +7,7 @@ import models._
 import viewmodels.BlogEntryData
 import org.joda.time.DateTime
 import scala.concurrent.Future
+import models.AttachmentTypes.AttachmentType
 
 @Singleton
 class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
@@ -34,11 +35,15 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
 
   def getCategoryRequired(url: String) = require(catDAO.getByUrl(url))
 
+  def getAttachmentById(id: Int) = attachmentDAO.getById(id)
+
   def getAttachment(blogurl: String, url: String) = attachmentDAO.getByBlogUrlAndAttachmentUrl(blogurl, url)
 
   def getAttachmentRequired(blogurl: String, url: String) = require(getAttachment(blogurl, url))
 
   def getAttachments(blogurl: String) = attachmentDAO.getByBlogUrl(blogurl)
+
+  def getAttachmentsByBlogId(blogId: Int) = attachmentDAO.getByBlogId(blogId)
 
   def getAllCategories() = catDAO.getAll()
 
@@ -59,6 +64,8 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
   def insertCategory(category: Category) = catDAO.insert(category)
 
   def insertTag(tag: Tag) = tagDAO.insert(tag)
+
+  def insertAttachment(attachment: Attachment) = attachmentDAO.insert(attachment)
 
   def updateBlogContent(id: Int, content: String, contentRendered: String, abstractRendered: String) =
     blogEntryDAO.updateContent(id, content, contentRendered, abstractRendered)
@@ -85,5 +92,10 @@ class BlogService @Inject() (blogEntryDAO: BlogEntryDAO,
   def updateTag(id: Int, title: String, url: String) = tagDAO.update(id, title, url)
 
   def deleteTag(id: Int) = tagDAO.delete(id)
+
+  def updateAttachment(id: Int, url: String, mime: String, attachmentType: AttachmentType) =
+    attachmentDAO.update(id, url, mime, attachmentType)
+
+  def deleteAttachment(id: Int) = attachmentDAO.delete(id)
 
 }

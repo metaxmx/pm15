@@ -32,9 +32,15 @@ import play.api.Play.current
 import java.sql.SQLIntegrityConstraintViolationException
 import org.joda.time.DateTime
 import scala.util.Try
+import models.Attachment
+import models.AttachmentTypes
+import play.api.Play.current
+import org.apache.commons.io.FileUtils
 
 @Singleton
 class AdminController @Inject() (blogService: BlogService, val messagesApi: MessagesApi) extends AbstractController with I18nSupport {
+
+  implicit val playCOnfig = current.configuration
 
   /*
    * Pages
@@ -66,11 +72,17 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
 
   implicit val formatTagList = Json.format[TagList]
 
+  implicit val formatAttachmentListEntry = Json.format[AttachmentListEntry]
+
+  implicit val formatAttachmentList = Json.format[AttachmentList]
+
   implicit val formatInsertBlogEntryData = Json.format[InsertBlogEntryData]
 
   implicit val formatInsertCategoryData = Json.format[InsertCategoryData]
 
   implicit val formatInsertTagData = Json.format[InsertTagData]
+
+  implicit val formatInsertAttachmentData = Json.format[InsertAttachmentData]
 
   implicit val formatInserSuccess = Json.format[InsertSuccess]
 
@@ -149,6 +161,13 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
     }
   }
 
+  def getRestBlogFiles(id: Int) = AdminAction.async {
+    blogService.getAttachmentsByBlogId(id) map {
+      attachments =>
+         Ok(Json.toJson(AttachmentList.fromAttachmentList(attachments))).as(JSON)
+    }
+  }
+
   def postRestAddEntry = AdminAction.async(parse.json[InsertBlogEntryData]) {
     request =>
       val insertEntryData = request.body
@@ -184,6 +203,29 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
       val tag = Tag(0, insertTagData.url, insertTagData.title)
       blogService.insertTag(tag) map {
         id =>
+          Ok(Json.toJson(InsertSuccess(true, id))).as(JSON)
+      } recover {
+        case e: SQLIntegrityConstraintViolationException =>
+          Ok(Json.toJson(InsertError(false, "URL already in use"))).as(JSON)
+        case exc: Exception =>
+          Ok(Json.toJson(InsertError(false, exc.getMessage))).as(JSON)
+      }
+  }
+
+  def postRestAddAttachment(blogId: Int) = AdminAction.async(parse.json[InsertAttachmentData]) {
+    request =>
+      val insertAttachmentData = request.body
+      val filename = Some(insertAttachmentData.filename) filter {_ != insertAttachmentData.url}
+      val attachment = Attachment(0, blogId, insertAttachmentData.url, filename,
+          AttachmentTypes(insertAttachmentData.attachmentType), insertAttachmentData.mime, 0)
+      blogService.insertAttachment(attachment) map {
+        id =>
+          val attachmentDestination = RenderContext.blogAttachmentFolderOrCreate(blogId)
+          val attachmentFile = new File(attachmentDestination, insertAttachmentData.filename)
+          if (attachmentFile.exists) {
+            throw new IllegalStateException("File already exists")
+          }
+          FileUtils.writeByteArrayToFile(attachmentFile, insertAttachmentData.filedata)
           Ok(Json.toJson(InsertSuccess(true, id))).as(JSON)
       } recover {
         case e: SQLIntegrityConstraintViolationException =>
@@ -294,8 +336,27 @@ class AdminController @Inject() (blogService: BlogService, val messagesApi: Mess
     }
   }
 
+  def deleteRestDeleteAttachment(id: Int) = AdminAction.async {
+    blogService.getAttachmentById(id) flatMap {
+      case Some(attachment) => {
+        blogService.deleteAttachment(id) map {
+          case false => Ok(Json.toJson(DeleteError(false, "Error during database delete"))).as(JSON)
+          case true  => {
+            val attachmentDestination = RenderContext.blogAttachmentDestination(attachment.blogId)
+            val attachmentFile = new File(attachmentDestination, attachment.filename.getOrElse(attachment.url))
+            if (attachmentFile.exists && attachmentFile.delete()) {
+              Ok(Json.toJson(DeleteSuccess(true, id))).as(JSON)
+            } else {
+              Ok(Json.toJson(DeleteError(false, "Database entry was delete, but file could not be deleted"))).as(JSON)
+            }
+          }
+        }
+      }
+      case None => Future.successful(Ok(Json.toJson(DeleteError(false, "Error during database delete"))).as(JSON))
+    }
+  }
+
   private[this] def render(blogEntry: BlogEntry, attachments: Seq[Attachment], content: String) = {
-    implicit val config = current.configuration
     implicit val renderContext = RenderContext.blogRenderContext(blogEntry, attachments)
     ContentRenderers.render(content)
   }
@@ -337,6 +398,17 @@ object AdminController {
 
   }
 
+  case class AttachmentListEntry(id: Int, filename: Option[String], url: String)
+
+  case class AttachmentList(attachments: Seq[AttachmentListEntry])
+
+  object AttachmentList {
+
+    def fromAttachmentList(attachments: Seq[Attachment]) =
+      AttachmentList(attachments map { case att => AttachmentListEntry(att.id, att.filename, att.url) })
+
+  }
+
   case class TagListEntry(id: Int, title: String, url: String, blogEntries: Option[Int])
 
   case class InsertBlogEntryData(title: String, url: String, category: Int)
@@ -344,6 +416,8 @@ object AdminController {
   case class InsertCategoryData(title: String, url: String)
 
   case class InsertTagData(title: String, url: String)
+
+  case class InsertAttachmentData(filename: String, url: String, filedata: Array[Byte], attachmentType: String, mime: String)
 
   case class InsertSuccess(success: Boolean, id: Int)
 
@@ -404,4 +478,5 @@ object AdminController {
   case class DeleteSuccess(success: Boolean, id: Int)
 
   case class DeleteError(success: Boolean, error: String)
+
 }

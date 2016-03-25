@@ -458,6 +458,7 @@ div.read-more {
 .data-table() {
 	width: 100%;
 	border: 1px solid #cccccc;
+	table-layout: fixed;
 	th {
 		.vertical-gradient(#2e2e2e, #1f2c39);
 		color: #ffffff;
@@ -479,14 +480,13 @@ div.read-more {
 			}
 		}
 	}
+	.row_loading {
+		font-style: italic;
+	}
 }
 
 #adminBlogList table {
 	.data-table();
-	table-layout: fixed;
-	.row_loading {
-		font-style: italic;
-	}
 	.col_title {
 		width: 60%;
 	}
@@ -500,10 +500,6 @@ div.read-more {
 
 #adminCategoryList table {
 	.data-table();
-	table-layout: fixed;
-	.row_loading {
-		font-style: italic;
-	}
 	.col_title {
 		width: 50%;
 	}
@@ -517,10 +513,19 @@ div.read-more {
 
 #adminTagList table {
 	.data-table();
-	table-layout: fixed;
-	.row_loading {
-		font-style: italic;
+	.col_title {
+		width: 50%;
 	}
+	.col_url {
+		width: 50%
+	}
+	.col_entries {
+		width: 120px;
+	}
+}
+
+#editBlogAttachments table {
+	.data-table();
 	.col_title {
 		width: 50%;
 	}

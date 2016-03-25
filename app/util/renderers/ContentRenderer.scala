@@ -9,6 +9,7 @@ import util.renderers.post.PostRenderers
 import util.renderers.pre.PreRenderers
 import models.Attachment
 import play.api.Configuration
+import com.typesafe.config.ConfigException
 
 case class ContentWithAbstract(abstractText: String, content: String) {
 
@@ -25,14 +26,26 @@ case class RenderContext(renderType: RenderType, format: String, attachments: Se
 
 object RenderContext {
 
+  private[this] val CFG_MEDIA_PATH = "media.path"
+
+  private[this] val SUBDIR_BLOG = "blog"
+
   def blogAttachmentRoot(implicit configuration: Configuration) =
-    new File(configuration.getString("media.path").getOrElse("media") + "/blog")
+    new File(configuration.getString(CFG_MEDIA_PATH).getOrElse(throw new ConfigException.Missing(CFG_MEDIA_PATH)) + s"/$SUBDIR_BLOG")
 
   def blogAttachmentDestination(blogId: Int)(implicit configuration: Configuration) =
     new File(blogAttachmentRoot, blogId.toString)
 
   def blogAttachmentFolder(blogId: Int)(implicit configuration: Configuration) =
     Option(blogAttachmentDestination(blogId)) filter { _.isDirectory }
+
+  def blogAttachmentFolderOrCreate(blogId: Int)(implicit configuration: Configuration) = {
+    val destination = blogAttachmentDestination(blogId)
+    if (!destination.exists) {
+      destination.mkdirs()
+    }
+    destination
+  }
 
   def blogRenderContext(blog: BlogEntry, attachments: Seq[Attachment])(implicit configuration: Configuration): RenderContext =
     RenderContext(RenderTypeBlog, blog.contentFormat, attachments,

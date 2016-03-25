@@ -2,14 +2,10 @@ package controllers
 
 import java.io.File
 import java.io.IOException
-
 import scala.Range
-
 import org.apache.commons.io.FileUtils
 import org.joda.time.YearMonth
-
 import com.typesafe.config.ConfigException
-
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.Attachment
@@ -27,15 +23,14 @@ import util.exception.PageExceptions
 import viewmodels.BlogEntryData
 import viewmodels.BlogEntryList
 import viewmodels.Pagination
+import util.renderers.RenderContext
 
 @Singleton
 class BlogController @Inject() (blogService: BlogService) extends AbstractController with Logging {
 
   val BLOG_ENTRIES_PER_PAGE = 10
 
-  lazy val mediaBasePath = current.configuration.getString("media.path") getOrElse { throw new ConfigException.Missing("media.path") }
-
-  lazy val mediaBaseFile = new File(mediaBasePath)
+  implicit val playConfig = current.configuration
 
   def blogOverview = blogOverviewPage(1)
 
@@ -150,13 +145,14 @@ class BlogController @Inject() (blogService: BlogService) extends AbstractContro
   }
 
   private def readAttachment(attachment: Attachment): Array[Byte] = {
-    val blogEntryDir = new File(mediaBaseFile, s"blog/${attachment.blogId}")
+    val blogEntryDir = RenderContext.blogAttachmentDestination(attachment.blogId)
     val file = new File(blogEntryDir, attachment.filename.getOrElse(attachment.url))
     readFile(file)
   }
 
   private def readAttachmentThumbnail(attachment: Attachment, format: ImageFormat): Array[Byte] = {
-    val blogEntryFormatDir = new File(mediaBaseFile, s"blog/${attachment.blogId}/${format.folder}")
+    val blogEntryDir = RenderContext.blogAttachmentDestination(attachment.blogId)
+    val blogEntryFormatDir = new File(blogEntryDir, format.folder)
     val file = new File(blogEntryFormatDir, attachment.filename.getOrElse(attachment.url))
     readFile(file)
   }
