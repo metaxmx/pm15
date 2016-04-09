@@ -21,7 +21,7 @@
 		<div class="blogCategory">Kategorie:
 			<a href="@routes.BlogController.blogByCategory(entry.category.url)">@entry.category.title</a>
 		</div>
-		@if(!entry.tags.isEmpty) {
+		@if(entry.tags.nonEmpty) {
 			<div class="blogTags">Schlagworte:
 				<ul class="tags">
 				@for(tag <- entry.tags) {

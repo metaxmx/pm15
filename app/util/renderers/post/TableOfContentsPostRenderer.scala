@@ -17,7 +17,7 @@ object TableOfContentsPostRenderer extends PostRenderer {
     val ContentWithAbstract(abstractText, contentRendered) = content map giveHeadlinesIds
     if ((abstractText contains tocToken) || (contentRendered contains tocToken)) {
       val outline = genOutline(contentRendered)
-      if (!outline.entries.isEmpty) {
+      if (outline.entries.nonEmpty) {
         ContentWithAbstract(
           if (abstractText contains tocToken) abstractText.replace(tocToken, genToc(outline, true)) else abstractText,
           if (contentRendered contains tocToken) contentRendered.replace(tocToken, genToc(outline, false)) else contentRendered)
@@ -86,7 +86,7 @@ object TableOfContentsPostRenderer extends PostRenderer {
           } else {
             li.text(entry.title)
           }
-          if (!entry.subEntries.isEmpty) {
+          if (entry.subEntries.nonEmpty) {
             val subUl = li.appendElement("ul")
             genEntriesRec(subUl, entry.subEntries)
           }

@@ -27,4 +27,7 @@ project/project/
 /media/
 /import/
 
+# IntelliJ specific
+.idea/
+
 /conf/instance.conf

@@ -1,28 +1,26 @@
 package admin
 
-import java.io.{ File, FileNotFoundException }
+import java.io.{File, FileNotFoundException}
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scala.util.{ Failure, Success, Try }
-import org.apache.commons.io.FileUtils
+import scala.util.{Failure, Success, Try}
+import org.apache.commons.io.{FileUtils, FilenameUtils}
+import org.apache.commons.io.Charsets.UTF_8
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import com.typesafe.config.ConfigFactory
-import play.api.{ Logger, Mode }
+import play.api.{Logger, Mode}
 import play.api.libs.json.Json
 import models._
 import slick.backend.DatabaseConfig
 import slick.driver.MySQLDriver
 import slick.driver.MySQLDriver.api._
 import util.Logging
-import util.renderers.{ ContentRenderers, ContentWithAbstract, MarkdownContentRenderer }
-import org.apache.commons.io.FilenameUtils
+import util.renderers.{ContentRenderers, ContentWithAbstract, MarkdownContentRenderer}
 import util.renderers.RenderContext
-import util.renderers.RenderTypeBlog
-import controllers.routes
-import java.nio.file.Files
 import play.api.Configuration
 
 /**
@@ -49,17 +47,17 @@ object AdminTasks extends Logging {
   def main(args: Array[String]) = {
     Logger.init(new File("."), Mode.Dev)
     args.toList match {
-      case "reset" :: Nil               => reset
-      case "clear" :: Nil               => clear
+      case "reset" :: Nil               => reset()
+      case "clear" :: Nil               => clear()
       case "render" :: Nil              => render(None)
       case "render" :: intId(id) :: Nil => render(Some(id.toInt))
       case "import" :: Nil              => importBlog()
       case "import" :: intId(id) :: Nil => importBlog(Some(id.toInt))
-      case _                            => help
+      case _                            => help()
     }
   }
 
-  def help = {
+  def help() = {
     println("""|Admin Tasks:
                | - reset          : Run clear, then import
                | - clear          : Clear all, ready for import
@@ -70,12 +68,12 @@ object AdminTasks extends Logging {
                |""".stripMargin)
   }
 
-  def reset = {
-    clear
+  def reset() = {
+    clear()
     importBlog()
   }
 
-  def clear = {
+  def clear() = {
     withDb {
       db =>
         val deletes = Seq(
@@ -150,8 +148,8 @@ object AdminTasks extends Logging {
           importData match {
             case Failure(e) => log.error(s"Error finding file ${e.getMessage}")
             case Success((blogFolder, contentFile, metaFile, attachmentsFolder)) => {
-              val metaData = FileUtils.readFileToString(metaFile, "UTF-8")
-              val contentData = FileUtils.readFileToString(contentFile, "UTF-8")
+              val metaData = FileUtils.readFileToString(metaFile, UTF_8)
+              val contentData = FileUtils.readFileToString(contentFile, UTF_8)
               val metaJson = Json.parse(metaData)
               metaJson.asOpt[BlogMeta] match {
                 case None       => log.error(s"Error parsing $metaFile")
@@ -261,7 +259,7 @@ object AdminTasks extends Logging {
                 log.info(s"Add Attachment $filename")
                 val mediaFile = new File(attachmentDestination, filename)
                 val extension = FilenameUtils.getExtension(filename)
-                val mime = mimes.get(extension).getOrElse(throw new IllegalArgumentException(s"Unknown MIME type for extension $extension"))
+                val mime = mimes.getOrElse(extension, throw new IllegalArgumentException(s"Unknown MIME type for extension $extension"))
                 FileUtils.copyFile(file, mediaFile)
                 val attachment = Attachment(0, blogId, mkUrl(filename), filenameOpt, AttachmentTypes.InlineAttachment, mime, 0)
                 Await.result(db.run(Attachments += attachment), Duration.Inf)

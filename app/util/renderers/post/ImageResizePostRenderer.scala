@@ -37,7 +37,7 @@ object ImageResizePostRenderer extends PostRenderer with Logging {
         }
         val filename = FilenameUtils.getName(img.attr("src"))
         val imageFileOpt = for {
-          attachment <- context.attachments.filter { att => att.url == filename || att.filename == filename }.headOption
+          attachment <- context.attachments.find { att => att.url == filename || att.filename == filename }
           parentFolder <- context.attachmentFolder
           file <- Option(new File(parentFolder, attachment.filename.getOrElse(attachment.url))) if file.exists
         } yield file
@@ -47,7 +47,7 @@ object ImageResizePostRenderer extends PostRenderer with Logging {
           val imageResized = if (targetFormat.fitInside(imageFullsize.width, imageFullsize.height)) {
             imageFullsize
           } else {
-            val thumbFile = new File(new File(imageFile.getParentFile(), targetFormat.folder), imageFile.getName)
+            val thumbFile = new File(new File(imageFile.getParentFile, targetFormat.folder), imageFile.getName)
             val imageResized = if (thumbFile.exists()) {
               log.info(s"Thumbnail for attachment $filename already exists.")
               Image.fromFile(thumbFile)

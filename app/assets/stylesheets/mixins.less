@@ -2,11 +2,8 @@
 // Vertical color gradient (2 colors)
 // Adapted from bootstrap/mixins.less
 .vertical-gradient(@start-color, @end-color, @start-percent: 0%, @end-percent: 100%, @position: 0 0) {
-	background-color: @end-color;
-	background-repeat: repeat-x;
-	background-position: @position;
-	background-attachment: scroll;
-	
+	background: @end-color repeat-x scroll @position;
+
 	.bg-image(@style) {
 		background-image: @style; // Makro to prevent multiple style warnings
 	}

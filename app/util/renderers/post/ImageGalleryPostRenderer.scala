@@ -35,7 +35,7 @@ object ImageGalleryPostRenderer extends PostRenderer {
         img.after(imageContainer)
         imageContainer.appendChild(imageContent)
         imageContent.appendChild(img)
-        if (img.hasAttr("title") && !img.attr("title").isEmpty()) {
+        if (img.hasAttr("title") && !img.attr("title").isEmpty) {
           val imageTitle = doc.createElement("div").addClass("image_title")
           imageContainer.appendChild(imageTitle)
           imageTitle.text(img.attr("title"))

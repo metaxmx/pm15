@@ -48,7 +48,7 @@ object IncludePrePrenderer extends PreRenderer with Logging {
       } {
         file =>
           val includeContent = try {
-            FileUtils.readLines(file, UTF_8).toSeq.drop(begin - 1).take(1 + end - begin).mkString("\n")
+            FileUtils.readLines(file, UTF_8).toSeq.slice(begin - 1, end).mkString("\n")
           } catch {
             case e: Exception =>
               log.error(s"Error reading includefile $filename", e)
