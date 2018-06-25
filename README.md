@@ -3,7 +3,7 @@
 Blog Software for private Blog "[Planet Metax](https://www.planet-metax.de)".
 
 **Author**: Christian Simon <[mail@planet-metax.de](mailto:mail@planet-metax.de)>  
-**Version**: 1.1  
+**Version**: 1.1.1  
 **License**: Apache License 2.0
 
 
