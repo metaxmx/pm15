@@ -1,6 +1,6 @@
 name := """pm15"""
 
-version := "1.1.1"
+version := "1.1.2"
 
 startYear := Some(2015)
 
